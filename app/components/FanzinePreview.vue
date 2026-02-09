@@ -1,18 +1,38 @@
 <template>
   <div class="space-y-6">
-    <!-- Preview with paper effect -->
-    <div>
-      <p class="text-sm text-muted mb-3">
-        {{ $t('preview.description') }}
-      </p>
-      <div class="rounded-lg overflow-hidden paper-shadow">
-        <FanzineGrid
-          :photos="photos"
-          :gap="gap"
-          readonly
-        />
-      </div>
-    </div>
+    <!-- Tab switcher: Print Layout vs Booklet Preview -->
+    <UTabs
+      :items="tabs"
+      variant="pill"
+      size="sm"
+      class="w-full"
+    >
+      <template #print-layout>
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-muted">
+            {{ $t('preview.printDescription') }}
+          </p>
+          <div class="rounded-lg overflow-hidden paper-shadow">
+            <FanzineGrid
+              :photos="photos"
+              :gap="gap"
+              readonly
+              show-labels
+              show-guides
+            />
+          </div>
+        </div>
+      </template>
+
+      <template #booklet>
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-muted">
+            {{ $t('preview.bookletDescription') }}
+          </p>
+          <BookletPreview :photos="photos" />
+        </div>
+      </template>
+    </UTabs>
 
     <!-- Download button -->
     <div class="flex flex-col items-center gap-3">
@@ -32,10 +52,25 @@
 </template>
 
 <script setup lang="ts">
+import type { TabsItem } from '@nuxt/ui';
+
 const { t } = useI18n();
 const { photos, gap } = usePhotoStore();
 const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
+
+const tabs = computed<TabsItem[]>(() => [
+  {
+    label: t('preview.tabPrintLayout'),
+    icon: 'i-lucide-layout-grid',
+    slot: 'print-layout' as const,
+  },
+  {
+    label: t('preview.tabBooklet'),
+    icon: 'i-lucide-book-open',
+    slot: 'booklet' as const,
+  },
+]);
 
 async function handleExport(): Promise<void> {
   try {

@@ -77,10 +77,19 @@
     "swap": "Swap",
     "placeHere": "Place here"
   },
+  "booklet": {
+    "prev": "Previous spread",
+    "next": "Next spread",
+    "goToSpread": "Go to spread {n}",
+    "spreadCount": "{current} / {total}"
+  },
   "preview": {
-    "description": "This is how your zine will look when printed on A4 landscape paper.",
+    "tabPrintLayout": "Print Layout",
+    "tabBooklet": "Booklet Preview",
+    "printDescription": "This is the flat print layout with fold and cut guides. Top row pages are printed upside-down so they read correctly when folded.",
+    "bookletDescription": "This is how your fanzine will look as a booklet after folding. Use arrow keys or buttons to flip through.",
     "download": "Download PDF",
-    "specs": "A4 landscape, 300 DPI, print-ready quality",
+    "specs": "A4 landscape, 300 DPI, with fold & cut guides",
     "toastSuccess": "PDF exported!",
     "toastSuccessDesc": "Your zine has been downloaded successfully.",
     "toastFailed": "Export failed",

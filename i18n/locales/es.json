@@ -77,10 +77,19 @@
     "swap": "Intercambiar",
     "placeHere": "Colocar aqui"
   },
+  "booklet": {
+    "prev": "Paginas anteriores",
+    "next": "Paginas siguientes",
+    "goToSpread": "Ir a las paginas {n}",
+    "spreadCount": "{current} / {total}"
+  },
   "preview": {
-    "description": "Asi se vera tu fanzine impreso en papel A4 horizontal.",
+    "tabPrintLayout": "Vista de impresion",
+    "tabBooklet": "Vista de folleto",
+    "printDescription": "Este es el diseno plano con guias de doblez y corte. Las paginas de la fila superior se imprimen al reves para que se lean correctamente al doblar.",
+    "bookletDescription": "Asi se vera tu fanzine como folleto despues de doblarlo. Usa las flechas o los botones para pasar las paginas.",
     "download": "Descargar PDF",
-    "specs": "A4 horizontal, 300 DPI, calidad de impresion",
+    "specs": "A4 horizontal, 300 DPI, con guias de doblez y corte",
     "toastSuccess": "PDF exportado!",
     "toastSuccessDesc": "Tu fanzine se descargo correctamente.",
     "toastFailed": "Error al exportar",
