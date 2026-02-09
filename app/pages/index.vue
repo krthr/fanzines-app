@@ -1,0 +1,3 @@
+<template>
+  <UPage></UPage>
+</template>
