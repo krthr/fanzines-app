@@ -89,14 +89,36 @@
               </template>
 
               <div class="space-y-3">
-                <p class="text-sm text-muted">
-                  {{ $t('arrangeCard.swapHint') }}
-                </p>
+                <div class="flex items-center justify-between">
+                  <p class="text-sm text-muted">
+                    {{ $t('arrangeCard.swapHint') }}
+                  </p>
+                  <div class="flex items-center gap-2 shrink-0 ml-4">
+                    <UButton
+                      :label="$t('guides.showLabels')"
+                      icon="i-lucide-tag"
+                      size="xs"
+                      :variant="showLabels ? 'soft' : 'ghost'"
+                      :color="showLabels ? 'primary' : 'neutral'"
+                      @click="showLabels = !showLabels"
+                    />
+                    <UButton
+                      :label="$t('guides.showGuides')"
+                      icon="i-lucide-scissors"
+                      size="xs"
+                      :variant="showGuides ? 'soft' : 'ghost'"
+                      :color="showGuides ? 'primary' : 'neutral'"
+                      @click="showGuides = !showGuides"
+                    />
+                  </div>
+                </div>
 
                 <div class="rounded-lg overflow-hidden paper-shadow">
                   <FanzineGrid
                     :photos="photos"
                     :gap="gap"
+                    :show-labels="showLabels"
+                    :show-guides="showGuides"
                     @reorder="reorder"
                   />
                 </div>
@@ -155,6 +177,10 @@ const { photos, gap, reorder, count, MAX_PHOTOS } = usePhotoStore();
 // Draft gap value -- slider updates this locally without touching the grid.
 // Only committed to the store (and grid) when user clicks "Apply".
 const draftGap = ref(gap.value);
+
+// Arrange step display toggles
+const showLabels = ref(false);
+const showGuides = ref(false);
 
 function applyGap(): void {
   gap.value = draftGap.value;

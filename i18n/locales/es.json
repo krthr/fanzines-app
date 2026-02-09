@@ -66,6 +66,12 @@
     "page5": "Pagina 5",
     "page6": "Pagina 6"
   },
+  "guides": {
+    "fold": "doblar",
+    "cut": "cortar",
+    "showLabels": "Etiquetas de pagina",
+    "showGuides": "Guias de doblez"
+  },
   "grid": {
     "photoAlt": "Foto {n}",
     "swap": "Intercambiar",
