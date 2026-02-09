@@ -1,2 +1,64 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@theme {
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Subtle background for both modes */
+:root {
+  --ui-primary: var(--ui-color-primary-500);
+}
+
+.dark {
+  --ui-primary: var(--ui-color-primary-400);
+}
+
+/* Body subtle texture */
+body {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-zinc-200) 0.5px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.dark body {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-zinc-800) 0.5px, transparent 0);
+}
+
+/* Paper shadow effect for zine preview */
+.paper-shadow {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 -1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.dark .paper-shadow {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 -1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Photo grid swap transition */
+.fanzine-cell img {
+  transition: transform 0.2s ease;
+}
+
+.fanzine-cell:hover img {
+  transform: scale(1.03);
+}
+
+/* Upload thumbnail hover */
+.photo-thumb {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.photo-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

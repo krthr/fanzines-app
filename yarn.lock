@@ -345,6 +345,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@capsizecss/unpack@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@capsizecss/unpack@npm:4.0.0"
+  dependencies:
+    fontkitten: "npm:^1.0.0"
+  checksum: 10c0/47ed4fa100d015f28e1ccb6813fc9d6ce39012bed0508ec49ae6c1e0e6eaa86b1450aba1a05245e4e3e35087eeec636ecb9a000c50a4c5f349586d0d07cdc922
+  languageName: node
+  linkType: hard
+
 "@clack/core@npm:1.0.0":
   version: 1.0.0
   resolution: "@clack/core@npm:1.0.0"
@@ -1711,6 +1720,35 @@ __metadata:
     unplugin: "npm:^2.3.10"
     unstorage: "npm:^1.17.2"
   checksum: 10c0/0562d1544ee999d5838276f00b26be909ed6d8b84253afc08e192a3a660a40d8cc105d1e7f17669142e2949894972a5d561cb1e92c3d1c6a930537b94a5341c9
+  languageName: node
+  linkType: hard
+
+"@nuxt/fonts@npm:^0.13.0":
+  version: 0.13.0
+  resolution: "@nuxt/fonts@npm:0.13.0"
+  dependencies:
+    "@nuxt/devtools-kit": "npm:^3.1.1"
+    "@nuxt/kit": "npm:^4.2.2"
+    consola: "npm:^3.4.2"
+    css-tree: "npm:^3.1.0"
+    defu: "npm:^6.1.4"
+    esbuild: "npm:^0.27.2"
+    fontaine: "npm:^0.8.0"
+    fontless: "npm:^0.1.0"
+    h3: "npm:^1.15.5"
+    jiti: "npm:^2.6.1"
+    magic-regexp: "npm:^0.10.0"
+    magic-string: "npm:^0.30.21"
+    ofetch: "npm:^1.5.1"
+    ohash: "npm:^2.0.11"
+    pathe: "npm:^2.0.3"
+    sirv: "npm:^3.0.2"
+    tinyglobby: "npm:^0.2.15"
+    ufo: "npm:^1.6.3"
+    unifont: "npm:^0.6.0"
+    unplugin: "npm:^2.3.11"
+    unstorage: "npm:^1.17.4"
+  checksum: 10c0/31d431c51a805561bf6c19cf6e9ed7b6f44ee7504656f007003985f54b07891dac0d7e8bf4ec483aa13516186e99a8052a17dd102aac52a51f043a0c3fd9269a
   languageName: node
   linkType: hard
 
@@ -6105,6 +6143,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "fanzine-app@workspace:."
   dependencies:
+    "@nuxt/fonts": "npm:^0.13.0"
     "@nuxt/ui": "npm:^4.4.0"
     "@nuxthub/core": "npm:^0.10.6"
     jspdf: "npm:^4.1.0"
@@ -6229,6 +6268,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fontaine@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "fontaine@npm:0.8.0"
+  dependencies:
+    "@capsizecss/unpack": "npm:^4.0.0"
+    css-tree: "npm:^3.1.0"
+    magic-regexp: "npm:^0.10.0"
+    magic-string: "npm:^0.30.21"
+    pathe: "npm:^2.0.3"
+    ufo: "npm:^1.6.1"
+    unplugin: "npm:^2.3.10"
+  checksum: 10c0/b125d663c43b1c62e3bc6e14515195dc959057b0e1106e26ed5ba4754ce11ff1e6a7526f754c84356a1c97a3f79146d68d8edca9d03a503329ed0fd9394e8b1d
+  languageName: node
+  linkType: hard
+
 "fontkit@npm:^2.0.2":
   version: 2.0.4
   resolution: "fontkit@npm:2.0.4"
@@ -6243,6 +6297,15 @@ __metadata:
     unicode-properties: "npm:^1.4.0"
     unicode-trie: "npm:^2.0.0"
   checksum: 10c0/e68940a0801daa53a4bd160fc49814eeea5eab4dc67225b43064548d35939be9f14de17213bc1a88064adf81b6dfbdb53bda7189df1d07a3ad044482e7fd55e4
+  languageName: node
+  linkType: hard
+
+"fontkitten@npm:^1.0.0":
+  version: 1.0.2
+  resolution: "fontkitten@npm:1.0.2"
+  dependencies:
+    tiny-inflate: "npm:^1.0.3"
+  checksum: 10c0/58aae23805232e0b04773f00ee91c3ec886998b4abb7b7a0da67620a8baeb011502499fbeab13bfcf0b7f5191975907c4da23ae2889f605bac93c36e32c5f2b2
   languageName: node
   linkType: hard
 

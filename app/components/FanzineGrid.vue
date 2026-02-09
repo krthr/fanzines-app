@@ -9,23 +9,36 @@
       class="fanzine-cell relative overflow-hidden"
       :class="{
         'cursor-pointer': !readonly,
-        'ring-3 ring-primary ring-inset': selectedIndex === index,
+        'ring-3 ring-primary ring-inset z-10': selectedIndex === index,
+        'hover:brightness-105': !readonly && selectedIndex !== index,
       }"
       @click="onCellClick(index)"
     >
       <img
         :src="photo.url"
         :alt="`Photo ${index + 1}`"
-        class="w-full h-full object-cover select-none pointer-events-none"
+        class="w-full h-full object-cover select-none pointer-events-none transition-transform duration-200"
       >
-      <div class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-xs text-center py-0.5">
+      <!-- Number overlay -->
+      <div
+        class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs text-center py-1 font-medium"
+        :class="{ 'opacity-0': selectedIndex === index }"
+      >
         {{ index + 1 }}
       </div>
+      <!-- Swap badge -->
       <div
         v-if="selectedIndex === index && !readonly"
-        class="absolute top-1 left-1"
+        class="absolute inset-0 flex items-center justify-center bg-primary/20"
       >
-        <UBadge label="Swap" size="sm" />
+        <UBadge label="Swap" size="md" color="primary" variant="solid" class="shadow-lg" />
+      </div>
+      <!-- Target hint when one is selected -->
+      <div
+        v-if="selectedIndex !== null && selectedIndex !== index && !readonly"
+        class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/30"
+      >
+        <UBadge label="Place here" size="sm" color="neutral" variant="solid" />
       </div>
     </div>
   </div>
@@ -86,5 +99,9 @@ function onCellClick(index: number): void {
   aspect-ratio: 297 / 210;
   background-color: black;
   gap: var(--grid-gap, 0px);
+}
+
+.fanzine-cell {
+  transition: filter 0.2s ease;
 }
 </style>

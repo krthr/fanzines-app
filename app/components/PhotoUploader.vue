@@ -1,5 +1,21 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-5">
+    <!-- Progress bar -->
+    <div v-if="count > 0" class="space-y-2">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-muted">Upload progress</span>
+        <span class="font-medium" :class="isFull ? 'text-primary' : ''">
+          {{ count }}/{{ MAX_PHOTOS }}
+        </span>
+      </div>
+      <UProgress
+        :model-value="(count / MAX_PHOTOS) * 100"
+        size="sm"
+        :color="isFull ? 'primary' : 'neutral'"
+      />
+    </div>
+
+    <!-- Drop zone -->
     <UFileUpload
       v-model="files"
       multiple
@@ -13,6 +29,7 @@
       @update:model-value="onFilesChanged"
     />
 
+    <!-- Thumbnail grid -->
     <div
       v-if="photos.length || uploadQueue.length"
       class="grid grid-cols-4 gap-3"
@@ -21,7 +38,7 @@
       <div
         v-for="(photo, index) in photos"
         :key="photo.id"
-        class="relative group aspect-[3/4] rounded-lg overflow-hidden bg-elevated"
+        class="photo-thumb relative group aspect-[3/4] rounded-lg overflow-hidden bg-elevated ring-1 ring-zinc-200 dark:ring-zinc-700"
       >
         <img
           :src="photo.url"
@@ -30,12 +47,12 @@
         >
         <button
           type="button"
-          class="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+          class="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-500"
           @click="handleRemove(index)"
         >
           <UIcon name="i-lucide-x" class="size-3.5" />
         </button>
-        <div class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-xs text-center py-0.5">
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent text-white text-xs text-center py-1 font-medium">
           {{ index + 1 }}
         </div>
       </div>
@@ -44,30 +61,40 @@
       <div
         v-for="item in uploadQueue"
         :key="item.id"
-        class="relative aspect-[3/4] rounded-lg overflow-hidden bg-elevated"
+        class="relative aspect-[3/4] rounded-lg overflow-hidden bg-elevated ring-1 ring-zinc-200 dark:ring-zinc-700"
       >
         <img
           :src="item.previewUrl"
           alt="Uploading..."
           class="w-full h-full object-cover"
-          :class="{ 'opacity-50': item.status !== 'done' }"
+          :class="{ 'opacity-40': item.status !== 'done' }"
         >
         <div
           v-if="item.status === 'error'"
-          class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60"
         >
-          <UIcon name="i-lucide-circle-alert" class="size-5 text-red-400" />
-          <span class="text-xs text-red-300">Failed</span>
+          <UIcon name="i-lucide-circle-alert" class="size-6 text-red-400" />
+          <span class="text-xs text-red-300 font-medium">Failed</span>
         </div>
         <div
           v-else-if="item.status !== 'done'"
-          class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/40"
         >
-          <UIcon name="i-lucide-loader-circle" class="size-5 text-white animate-spin" />
-          <span class="text-xs text-white/80">
+          <UIcon name="i-lucide-loader-circle" class="size-6 text-white animate-spin" />
+          <span class="text-xs text-white/80 font-medium">
             {{ item.status === 'compressing' ? 'Compressing...' : 'Uploading...' }}
           </span>
         </div>
+      </div>
+
+      <!-- Empty slots -->
+      <div
+        v-for="n in emptySlots"
+        :key="`empty-${n}`"
+        class="aspect-[3/4] rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center gap-1"
+      >
+        <UIcon name="i-lucide-image-plus" class="size-5 text-zinc-300 dark:text-zinc-600" />
+        <span class="text-xs text-zinc-400 dark:text-zinc-600">{{ count + uploadQueue.length + n }}</span>
       </div>
     </div>
   </div>
@@ -85,7 +112,13 @@ const {
   MAX_PHOTOS,
 } = usePhotoStore();
 
+const toast = useToast();
 const files = ref<File[] | null>(null);
+
+const emptySlots = computed(() => {
+  const filled = count.value + uploadQueue.value.length;
+  return Math.max(0, MAX_PHOTOS - filled);
+});
 
 const uploadLabel = computed(() => {
   if (isUploading.value) {
@@ -101,7 +134,15 @@ async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
   if (!value || value.length === 0) {
     return;
   }
-  await addPhotos(value);
+  try {
+    await addPhotos(value);
+  } catch {
+    toast.add({
+      title: 'Upload failed',
+      description: 'Some photos could not be uploaded. Please try again.',
+      color: 'error',
+    });
+  }
   nextTick(() => {
     files.value = null;
   });
@@ -109,5 +150,9 @@ async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
 
 async function handleRemove(index: number): Promise<void> {
   await removePhoto(index);
+  toast.add({
+    title: 'Photo removed',
+    color: 'neutral',
+  });
 }
 </script>
