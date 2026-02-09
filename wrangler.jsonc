@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "r2_buckets": [
+    {
+      "binding": "BLOB",
+      "bucket_name": "fanzines-app-assets",
+    },
+  ],
+}

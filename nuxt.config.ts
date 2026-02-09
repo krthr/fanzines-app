@@ -2,14 +2,9 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   css: ['~/assets/css/main.css'],
-  devtools: { enabled: true },
-  modules: ['@nuxt/ui'],
-  nitro: {
-    storage: {
-      photos: {
-        driver: 'fs',
-        base: './.data/photos',
-      },
-    },
+  devtools: {enabled: true},
+  modules: ['@nuxt/ui', '@nuxthub/core'],
+  hub: {
+    blob: true,
   },
 });
