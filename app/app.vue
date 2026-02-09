@@ -62,4 +62,11 @@ useHead({
     lang: locale,
   },
 });
+
+useSchemaOrg([
+  defineWebSite({
+    name: 'Fanzine',
+  }),
+  defineWebPage(),
+]);
 </script>

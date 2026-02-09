@@ -215,7 +215,21 @@ const canProceed = computed(() => {
   return true;
 });
 
-useHead({
+useSeoMeta({
   title: () => t('pageTitle'),
+  description: () => t('hero.description'),
+  ogTitle: () => t('pageTitle'),
+  ogDescription: () => t('hero.description'),
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => t('pageTitle'),
+  twitterDescription: () => t('hero.description'),
+});
+
+defineOgImage({
+  component: 'NuxtSeo',
+  title: 'Fanzine',
+  description: 'Create Print-Ready Photo Zines',
+  icon: 'lucide:book-image',
 });
 </script>

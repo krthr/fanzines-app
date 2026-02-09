@@ -3,7 +3,21 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@nuxthub/core', '@nuxt/fonts', '@nuxtjs/i18n'],
+  modules: [
+    '@nuxt/ui',
+    '@nuxthub/core',
+    '@nuxt/fonts',
+    '@nuxtjs/i18n',
+    '@nuxtjs/seo',
+  ],
+
+  site: {
+    url: 'https://fanzines.app',
+    name: 'Fanzine',
+    description: 'Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser.',
+    defaultLocale: 'en',
+  },
+
   fonts: {
     families: [
       {
@@ -27,7 +41,7 @@ export default defineNuxtConfig({
       },
     ],
     defaultLocale: 'en',
-    strategy: 'no_prefix',
+    strategy: 'prefix_except_default',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_locale',
