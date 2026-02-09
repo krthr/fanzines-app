@@ -18,6 +18,10 @@ export default defineNuxtConfig({
     },
   },
 
+  sitemap: {
+    zeroRuntime: true,
+  },
+
   site: {
     url: 'https://fanzines.app',
     name: 'Fanzine',
@@ -26,9 +30,7 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
   },
 
-  ogImage: {
-    zeroRuntime: true,
-  },
+  ogImage: false,
 
   fonts: {
     families: [

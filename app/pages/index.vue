@@ -228,9 +228,4 @@ useSeoMeta({
   twitterTitle: () => t('pageTitle'),
   twitterDescription: () => t('hero.description'),
 });
-
-defineOgImage('NuxtSeo', {
-  title: 'Fanzine',
-  description: 'Create Print-Ready Photo Zines',
-});
 </script>
