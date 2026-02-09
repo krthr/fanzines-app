@@ -3,12 +3,14 @@
     <div class="max-w-4xl mx-auto">
       <!-- Hero -->
       <div class="text-center mb-10">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
           <UIcon name="i-lucide-sparkles" class="size-4" />
           <span>{{ $t('hero.badge') }}</span>
         </div>
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
-          {{ $t('hero.titleStart') }} <span class="text-primary">{{ $t('hero.titleHighlight') }}</span>
+          {{ $t('hero.titleStart') }}
+          <span class="text-primary">{{ $t('hero.titleHighlight') }}</span>
         </h1>
         <p class="text-muted text-lg max-w-xl mx-auto">
           {{ $t('hero.description') }}
@@ -19,32 +21,33 @@
       <div class="flex items-center justify-center gap-3 mb-8">
         <div
           class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
-          :class="count === MAX_PHOTOS
-            ? 'bg-primary/15 text-primary'
-            : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'"
-        >
+          :class="
+            count === MAX_PHOTOS
+              ? 'bg-primary/15 text-primary'
+              : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+          ">
           <UIcon
-            :name="count === MAX_PHOTOS ? 'i-lucide-check-circle' : 'i-lucide-image-plus'"
-            class="size-4"
-          />
-          <span>{{ $t('progress.photos', { count, max: MAX_PHOTOS }) }}</span>
+            :name="
+              count === MAX_PHOTOS
+                ? 'i-lucide-check-circle'
+                : 'i-lucide-image-plus'
+            "
+            class="size-4" />
+          <span>{{ $t('progress.photos', {count, max: MAX_PHOTOS}) }}</span>
         </div>
       </div>
 
       <!-- Stepper -->
-      <UStepper
-        ref="stepper"
-        :items="steps"
-        disabled
-        class="w-full"
-      >
+      <UStepper ref="stepper" :items="steps" disabled class="w-full">
         <template #upload>
           <div class="mt-6">
             <UCard>
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-image" class="size-5 text-primary" />
-                  <h2 class="text-lg font-semibold">{{ $t('uploadCard.title') }}</h2>
+                  <h2 class="text-lg font-semibold">
+                    {{ $t('uploadCard.title') }}
+                  </h2>
                 </div>
               </template>
 
@@ -59,8 +62,12 @@
               <template #header>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-layout-grid" class="size-5 text-primary" />
-                    <h2 class="text-lg font-semibold">{{ $t('arrangeCard.title') }}</h2>
+                    <UIcon
+                      name="i-lucide-layout-grid"
+                      class="size-5 text-primary" />
+                    <h2 class="text-lg font-semibold">
+                      {{ $t('arrangeCard.title') }}
+                    </h2>
                   </div>
                   <div class="flex items-center gap-3">
                     <label class="text-sm font-medium text-muted shrink-0">
@@ -71,9 +78,9 @@
                       :min="0"
                       :max="16"
                       :step="1"
-                      class="w-32"
-                    />
-                    <span class="text-xs text-muted tabular-nums w-10 text-right">
+                      class="w-32" />
+                    <span
+                      class="text-xs text-muted tabular-nums w-10 text-right">
                       {{ draftGap }}px
                     </span>
                     <UButton
@@ -82,8 +89,7 @@
                       size="xs"
                       variant="soft"
                       :disabled="draftGap === gap"
-                      @click="applyGap"
-                    />
+                      @click="applyGap" />
                   </div>
                 </div>
               </template>
@@ -100,16 +106,14 @@
                       size="xs"
                       :variant="showLabels ? 'soft' : 'ghost'"
                       :color="showLabels ? 'primary' : 'neutral'"
-                      @click="showLabels = !showLabels"
-                    />
+                      @click="showLabels = !showLabels" />
                     <UButton
                       :label="$t('guides.showGuides')"
                       icon="i-lucide-scissors"
                       size="xs"
                       :variant="showGuides ? 'soft' : 'ghost'"
                       :color="showGuides ? 'primary' : 'neutral'"
-                      @click="showGuides = !showGuides"
-                    />
+                      @click="showGuides = !showGuides" />
                   </div>
                 </div>
 
@@ -119,8 +123,7 @@
                     :gap="gap"
                     :show-labels="showLabels"
                     :show-guides="showGuides"
-                    @reorder="reorder"
-                  />
+                    @reorder="reorder" />
                 </div>
               </div>
             </UCard>
@@ -133,7 +136,9 @@
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-download" class="size-5 text-primary" />
-                  <h2 class="text-lg font-semibold">{{ $t('exportCard.title') }}</h2>
+                  <h2 class="text-lg font-semibold">
+                    {{ $t('exportCard.title') }}
+                  </h2>
                 </div>
               </template>
 
@@ -152,8 +157,7 @@
           color="neutral"
           size="lg"
           :disabled="!stepper?.hasPrev"
-          @click="stepper?.prev()"
-        />
+          @click="stepper?.prev()" />
 
         <UButton
           v-if="stepper?.hasNext"
@@ -161,18 +165,17 @@
           trailing-icon="i-lucide-arrow-right"
           size="lg"
           :disabled="!canProceed"
-          @click="stepper?.next()"
-        />
+          @click="stepper?.next()" />
       </div>
     </div>
   </UContainer>
 </template>
 
 <script setup lang="ts">
-import type { StepperItem } from '@nuxt/ui';
+import type {StepperItem} from '@nuxt/ui';
 
-const { t } = useI18n();
-const { photos, gap, reorder, count, MAX_PHOTOS } = usePhotoStore();
+const {t} = useI18n();
+const {photos, gap, reorder, count, MAX_PHOTOS} = usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.
 // Only committed to the store (and grid) when user clicks "Apply".
@@ -226,10 +229,8 @@ useSeoMeta({
   twitterDescription: () => t('hero.description'),
 });
 
-defineOgImage({
-  component: 'NuxtSeo',
+defineOgImage('NuxtSeo', {
   title: 'Fanzine',
   description: 'Create Print-Ready Photo Zines',
-  icon: 'lucide:book-image',
 });
 </script>
