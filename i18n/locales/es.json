@@ -6,10 +6,10 @@
     "toggleDarkMode": "Cambiar modo oscuro"
   },
   "hero": {
-    "badge": "Creador de Fanzines",
-    "titleStart": "Crea Tu",
-    "titleHighlight": "Fanzine de Fotos",
-    "description": "Elige 8 fotos, organiza el diseno y exporta un PDF listo para imprimir en A4 -- todo desde tu navegador. Tus fotos nunca salen de tu dispositivo."
+    "badge": "Creador de fanzines",
+    "titleStart": "Crea tu",
+    "titleHighlight": "Fanzine de fotos",
+    "description": "Elige 8 fotos, organiza el diseño y exporta un PDF listo para imprimir en A4 -- todo desde tu navegador. Tus fotos nunca salen de tu dispositivo."
   },
   "progress": {
     "photos": "{count}/{max} fotos"
@@ -29,84 +29,84 @@
     }
   },
   "uploadCard": {
-    "title": "Selecciona Tus Fotos"
+    "title": "Selecciona tus fotos"
   },
   "arrangeCard": {
-    "title": "Organizar Diseno",
+    "title": "Organizar diseño",
     "gapLabel": "Espacio",
     "apply": "Aplicar",
     "swapHint": "Haz clic en una foto para seleccionarla, luego haz clic en otra para intercambiar sus posiciones."
   },
   "exportCard": {
-    "title": "Exporta Tu Fanzine"
+    "title": "Exporta tu fanzine"
   },
   "nav": {
-    "back": "Atras",
+    "back": "Atrás",
     "next": "Siguiente"
   },
   "uploader": {
     "progress": "Fotos seleccionadas",
     "allSelected": "Todas las fotos seleccionadas",
-    "dropHint": "Arrastra tus fotos aqui o haz clic para buscar",
+    "dropHint": "Arrastra tus fotos aquí o haz clic para buscar",
     "fileTypes": "JPG, PNG, WebP o GIF. {count}/{max} fotos seleccionadas.",
-    "privacyNotice": "Tus fotos permanecen en tu dispositivo y nunca se envian a ningun servidor.",
+    "privacyNotice": "Tus fotos permanecen en tu dispositivo y nunca se envían a ningún servidor.",
     "toastRemoved": "Foto eliminada"
   },
   "layout": {
     "frontCover": "Portada",
     "backCover": "Contraportada",
-    "page1": "Pagina 1",
-    "page2": "Pagina 2",
-    "page3": "Pagina 3",
-    "page4": "Pagina 4",
-    "page5": "Pagina 5",
-    "page6": "Pagina 6"
+    "page1": "Página 1",
+    "page2": "Página 2",
+    "page3": "Página 3",
+    "page4": "Página 4",
+    "page5": "Página 5",
+    "page6": "Página 6"
   },
   "guides": {
     "fold": "doblar",
     "cut": "cortar",
-    "showLabels": "Etiquetas de pagina",
-    "showGuides": "Guias de doblez"
+    "showLabels": "Etiquetas de página",
+    "showGuides": "Guías de doblez"
   },
   "grid": {
     "photoAlt": "Foto {n}",
     "swap": "Intercambiar",
-    "placeHere": "Colocar aqui"
+    "placeHere": "Colocar aquí"
   },
   "booklet": {
-    "prev": "Paginas anteriores",
-    "next": "Paginas siguientes",
-    "goToSpread": "Ir a las paginas {n}",
+    "prev": "Páginas anteriores",
+    "next": "Páginas siguientes",
+    "goToSpread": "Ir a las páginas {n}",
     "spreadCount": "{current} / {total}"
   },
   "tutorial": {
-    "title": "Como doblar tu fanzine",
-    "description": "Sigue estos pasos despues de imprimir tu PDF.",
+    "title": "Cómo doblar tu fanzine",
+    "description": "Sigue estos pasos después de imprimir tu PDF.",
     "prev": "Anterior",
     "next": "Siguiente",
-    "done": "Entendido!",
+    "done": "¡Entendido!",
     "popHint": "Empuja el centro hacia afuera",
-    "openButton": "Como doblar",
+    "openButton": "Cómo doblar",
     "steps": {
       "0": {
         "title": "Empieza con la hoja impresa",
-        "description": "Coloca la hoja A4 impresa boca arriba en una superficie plana en orientacion horizontal."
+        "description": "Coloca la hoja A4 impresa boca arriba en una superficie plana en orientación horizontal."
       },
       "1": {
         "title": "Dobla por la mitad horizontalmente",
-        "description": "Lleva el borde superior hacia el borde inferior. Marca bien el pliegue en la linea central."
+        "description": "Lleva el borde superior hacia el borde inferior. Marca bien el pliegue en la línea central."
       },
       "2": {
         "title": "Dobla por la mitad otra vez",
         "description": "Lleva el borde derecho hacia el borde izquierdo. Marca el nuevo pliegue."
       },
       "3": {
-        "title": "Dobla una vez mas",
-        "description": "Dobla por la mitad una vez mas en la misma direccion. Ahora tienes un rectangulo pequeno con 8 capas."
+        "title": "Dobla una vez más",
+        "description": "Dobla por la mitad una vez más en la misma dirección. Ahora tienes un rectángulo pequeño con 8 capas."
       },
       "4": {
         "title": "Desdobla y corta la ranura",
-        "description": "Desdobla la hoja completamente. Corta por la linea roja — el centro horizontal entre las dos columnas del medio solamente. NO cortes de lado a lado."
+        "description": "Desdobla la hoja completamente. Corta por la línea roja — el centro horizontal entre las dos columnas del medio solamente. NO cortes de lado a lado."
       },
       "5": {
         "title": "Dobla y saca el centro",
@@ -114,22 +114,22 @@
       },
       "6": {
         "title": "Dobla en forma de folleto",
-        "description": "Junta las paginas y doblalo en forma de folleto. La portada debe quedar arriba. Tu fanzine esta listo!"
+        "description": "Junta las páginas y dóblalo en forma de folleto. La portada debe quedar arriba. ¡Tu fanzine está listo!"
       }
     }
   },
   "preview": {
-    "tabPrintLayout": "Vista de impresion",
+    "tabPrintLayout": "Vista de impresión",
     "tabBooklet": "Vista de folleto",
-    "printDescription": "Este es el diseno plano con guias de doblez y corte. Las paginas de la fila superior se imprimen al reves para que se lean correctamente al doblar.",
-    "bookletDescription": "Asi se vera tu fanzine como folleto despues de doblarlo. Usa las flechas o los botones para pasar las paginas.",
+    "printDescription": "Este es el diseño plano con guías de doblez y corte. Las páginas de la fila superior se imprimen al revés para que se lean correctamente al doblar.",
+    "bookletDescription": "Así se verá tu fanzine como folleto después de doblarlo. Usa las flechas o los botones para pasar las páginas.",
     "download": "Descargar PDF",
-    "pdfGuides": "Incluir guias de doblez y corte en el PDF",
-    "specs": "A4 horizontal, 300 DPI, calidad de impresion",
+    "pdfGuides": "Incluir guías de doblez y corte en el PDF",
+    "specs": "A4 horizontal, 300 DPI, calidad de impresión",
     "toastSuccess": "PDF exportado!",
-    "toastSuccessDesc": "Tu fanzine se descargo correctamente.",
+    "toastSuccessDesc": "Tu fanzine se descargó correctamente.",
     "toastFailed": "Error al exportar",
-    "toastFailedDesc": "Algo salio mal al generar el PDF."
+    "toastFailedDesc": "Algo salió mal al generar el PDF."
   },
-  "pageTitle": "Fanzine - Crea Fanzines de Fotos Listos para Imprimir"
+  "pageTitle": "Fanzine - Crea fanzines de fotos listos para imprimir"
 }

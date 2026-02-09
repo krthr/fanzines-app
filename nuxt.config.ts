@@ -51,7 +51,7 @@ export default defineNuxtConfig({
       },
       {
         code: 'es',
-        name: 'Espanol',
+        name: 'Español',
         file: 'es.json',
       },
     ],
