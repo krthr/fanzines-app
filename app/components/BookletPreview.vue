@@ -93,7 +93,7 @@ const spreadLabels = computed(() => layout.getSpreadLabels());
 const currentIndex = ref(0);
 
 const currentSpread = computed(() => spreads.value[currentIndex.value]);
-const currentLabels = computed(() => spreadLabels.value[currentIndex.value] ?? ['', '']);
+const currentLabels = computed((): [string, string] => spreadLabels.value[currentIndex.value] ?? ['', '']);
 
 // Reset to first spread when photos change
 watch(() => props.photos, () => {

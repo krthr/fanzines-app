@@ -83,6 +83,45 @@
     "goToSpread": "Ir a las paginas {n}",
     "spreadCount": "{current} / {total}"
   },
+  "tutorial": {
+    "title": "Como doblar tu fanzine",
+    "description": "Sigue estos pasos despues de imprimir tu PDF.",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "done": "Entendido!",
+    "popHint": "Empuja el centro hacia afuera",
+    "openButton": "Como doblar",
+    "steps": {
+      "0": {
+        "title": "Empieza con la hoja impresa",
+        "description": "Coloca la hoja A4 impresa boca arriba en una superficie plana en orientacion horizontal."
+      },
+      "1": {
+        "title": "Dobla por la mitad horizontalmente",
+        "description": "Lleva el borde superior hacia el borde inferior. Marca bien el pliegue en la linea central."
+      },
+      "2": {
+        "title": "Dobla por la mitad otra vez",
+        "description": "Lleva el borde derecho hacia el borde izquierdo. Marca el nuevo pliegue."
+      },
+      "3": {
+        "title": "Dobla una vez mas",
+        "description": "Dobla por la mitad una vez mas en la misma direccion. Ahora tienes un rectangulo pequeno con 8 capas."
+      },
+      "4": {
+        "title": "Desdobla y corta la ranura",
+        "description": "Desdobla la hoja completamente. Corta por la linea roja — el centro horizontal entre las dos columnas del medio solamente. NO cortes de lado a lado."
+      },
+      "5": {
+        "title": "Dobla y saca el centro",
+        "description": "Dobla la hoja por la mitad horizontalmente otra vez. Empuja las secciones del centro hacia afuera por la ranura para formar una cruz o diamante."
+      },
+      "6": {
+        "title": "Dobla en forma de folleto",
+        "description": "Junta las paginas y doblalo en forma de folleto. La portada debe quedar arriba. Tu fanzine esta listo!"
+      }
+    }
+  },
   "preview": {
     "tabPrintLayout": "Vista de impresion",
     "tabBooklet": "Vista de folleto",

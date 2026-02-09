@@ -34,7 +34,7 @@
       </template>
     </UTabs>
 
-    <!-- Download button -->
+    <!-- Actions: Download + How to fold -->
     <div class="flex flex-col items-center gap-3">
       <UButton
         :label="$t('preview.download')"
@@ -47,6 +47,16 @@
       <p class="text-xs text-muted">
         {{ $t('preview.specs') }}
       </p>
+
+      <FoldingTutorial v-model:open="showTutorial">
+        <UButton
+          :label="$t('tutorial.openButton')"
+          icon="i-lucide-book-open-check"
+          variant="outline"
+          color="neutral"
+          size="sm"
+        />
+      </FoldingTutorial>
     </div>
   </div>
 </template>
@@ -58,6 +68,8 @@ const { t } = useI18n();
 const { photos, gap } = usePhotoStore();
 const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
+
+const showTutorial = ref(false);
 
 const tabs = computed<TabsItem[]>(() => [
   {

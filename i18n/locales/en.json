@@ -83,6 +83,45 @@
     "goToSpread": "Go to spread {n}",
     "spreadCount": "{current} / {total}"
   },
+  "tutorial": {
+    "title": "How to Fold Your Fanzine",
+    "description": "Follow these steps after printing your PDF.",
+    "prev": "Previous",
+    "next": "Next",
+    "done": "Got it!",
+    "popHint": "Push the center outward",
+    "openButton": "How to fold",
+    "steps": {
+      "0": {
+        "title": "Start with your printed sheet",
+        "description": "Place the printed A4 sheet face-up on a flat surface with the landscape orientation."
+      },
+      "1": {
+        "title": "Fold in half horizontally",
+        "description": "Bring the top edge down to meet the bottom edge. Crease well along the center line."
+      },
+      "2": {
+        "title": "Fold in half again",
+        "description": "Bring the right edge to meet the left edge. Crease along the new fold."
+      },
+      "3": {
+        "title": "Fold once more",
+        "description": "Fold in half one more time in the same direction. You now have a small rectangle with 8 layers."
+      },
+      "4": {
+        "title": "Unfold and cut the slit",
+        "description": "Unfold the sheet completely. Cut along the red line — the horizontal center between the two middle columns only. Do NOT cut all the way across."
+      },
+      "5": {
+        "title": "Fold and pop out the center",
+        "description": "Fold the sheet in half horizontally again. Push the center sections outward through the slit to form a cross or diamond shape."
+      },
+      "6": {
+        "title": "Fold into a booklet",
+        "description": "Press the pages together and fold them into a booklet. The front cover should be on top. Your fanzine is ready!"
+      }
+    }
+  },
   "preview": {
     "tabPrintLayout": "Print Layout",
     "tabBooklet": "Booklet Preview",
