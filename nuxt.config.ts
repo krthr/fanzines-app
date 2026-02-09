@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   css: ['~/assets/css/main.css'],
-  devtools: { enabled: true },
+  devtools: {enabled: true},
   modules: [
     '@nuxt/ui',
     '@nuxthub/core',
@@ -14,8 +14,13 @@ export default defineNuxtConfig({
   site: {
     url: 'https://fanzines.app',
     name: 'Fanzine',
-    description: 'Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser.',
+    description:
+      'Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser.',
     defaultLocale: 'en',
+  },
+
+  ogImage: {
+    zeroRuntime: true,
   },
 
   fonts: {
@@ -27,6 +32,7 @@ export default defineNuxtConfig({
       },
     ],
   },
+
   i18n: {
     locales: [
       {

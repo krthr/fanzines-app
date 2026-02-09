@@ -1,65 +1,103 @@
 <script setup>
-import { computed } from "vue";
+import { computed } from 'vue';
+
 const props = defineProps({
-  colorMode: { type: String, required: false, default: "light" },
-  title: { type: String, required: false, default: "title" },
+  colorMode: { type: String, required: false, default: 'light' },
+  title: { type: String, required: false, default: 'Fanzine' },
   description: { type: String, required: false },
-  isPro: { type: Boolean, required: false }
+  icon: { type: String, required: false },
 });
-const themeColor = computed(() => props.isPro ? "124, 58, 237" : "34, 197, 94");
+
+const isDark = computed(() => props.colorMode === 'dark');
+
+// Rose 500 / Rose 400 for accent
+const accentRgb = computed(() => isDark.value ? '251, 113, 133' : '244, 63, 94');
+const accentHex = computed(() => isDark.value ? '#fb7185' : '#f43f5e');
+const accentHexLight = computed(() => isDark.value ? '#fda4af' : '#fb7185');
 </script>
 
 <template>
   <div
-    class="w-full h-full justify-center items-center relative p-10 lg:p-[60px] bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-50"
+    class="w-full h-full flex flex-col justify-center items-center relative overflow-hidden"
+    :style="{
+      backgroundColor: isDark ? '#18181b' : '#ffffff',
+      color: isDark ? '#fafafa' : '#18181b',
+      fontFamily: 'Space Grotesk, sans-serif',
+    }"
   >
-    <!-- Gradient background -->
+    <!-- Dot texture background -->
     <div
-      class="absolute top-0 left-0 right-0 bottom-0" :style="{
-  backgroundImage: `radial-gradient(ellipse 100% 100% at 100% 100%, rgba(${themeColor}, 0.15) 0%, transparent 60%)`
-}"
-    />
-    <div
-      class="absolute top-0 left-0 right-0 bottom-0" :style="{
-  backgroundImage: `radial-gradient(ellipse 100% 100% at 0.1% 0.1%, rgba(${themeColor}, 0.1) 0%, transparent 50%)`
-}"
+      class="absolute top-0 left-0 right-0 bottom-0"
+      :style="{
+        backgroundImage: `radial-gradient(circle at 1px 1px, ${isDark ? 'rgba(63, 63, 70, 0.6)' : 'rgba(228, 228, 231, 0.8)'} 0.5px, transparent 0)`,
+        backgroundSize: '24px 24px',
+      }"
     />
 
-    <div class="w-full flex-col justify-center relative items-center text-center gap-5 lg:gap-8">
+    <!-- Gradient accents -->
+    <div
+      class="absolute top-0 left-0 right-0 bottom-0"
+      :style="{
+        backgroundImage: `radial-gradient(ellipse 80% 80% at 100% 100%, rgba(${accentRgb}, 0.2) 0%, transparent 60%)`,
+      }"
+    />
+    <div
+      class="absolute top-0 left-0 right-0 bottom-0"
+      :style="{
+        backgroundImage: `radial-gradient(ellipse 60% 60% at 0% 0%, rgba(${accentRgb}, 0.1) 0%, transparent 50%)`,
+      }"
+    />
+
+    <!-- Content -->
+    <div class="w-full flex flex-col items-center text-center gap-6 relative px-16 py-12">
       <!-- Logo -->
-      <div class="flex items-center gap-1">
-        <svg viewBox="0 0 64 64" class="w-10 h-10 lg:w-16 lg:h-16">
-          <defs>
-            <linearGradient :id="isPro ? 'nsLine2' : 'nsLine1'" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" :stop-color="isPro ? '#7c3aed' : '#22c55e'" />
-              <stop offset="100%" :stop-color="isPro ? '#c4b5fd' : '#86efac'" />
-            </linearGradient>
-            <linearGradient :id="isPro ? 'nsFill2' : 'nsFill1'" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" :stop-color="isPro ? '#7c3aed' : '#22c55e'" stop-opacity="0.6" />
-              <stop offset="100%" :stop-color="isPro ? '#7c3aed' : '#22c55e'" stop-opacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M8 52 Q20 48 24 36 T40 20 T56 12 L56 56 L8 56 Z" :fill="`url(#${isPro ? 'nsFill2' : 'nsFill1'})`" />
-          <path d="M8 52 Q20 48 24 36 T40 20 T56 12" fill="none" :stroke="`url(#${isPro ? 'nsLine2' : 'nsLine1'})`" stroke-width="4" stroke-linecap="round" />
-          <circle cx="56" cy="12" r="6" :fill="`url(#${isPro ? 'nsLine2' : 'nsLine1'})`" />
+      <div class="flex items-center gap-3">
+        <svg viewBox="0 0 24 24" class="w-14 h-14" fill="none" :stroke="accentHex" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+          <path d="M8 7h6" />
+          <path d="M8 11h8" />
         </svg>
-        <span class="text-[32px] lg:text-[42px] font-bold tracking-tight">
-          Nuxt<span :class="isPro ? 'text-violet-500' : 'text-green-500'" class="ml-1">SEO{{ isPro ? " Pro" : "" }}</span>
+        <span
+          class="text-[42px] font-bold tracking-tight"
+          :style="{ color: isDark ? '#fafafa' : '#18181b' }"
+        >
+          Fanzine
         </span>
       </div>
 
       <!-- Title -->
       <h1
-        class="w-full justify-center text-center text-[48px] lg:text-[80px] font-bold m-0 leading-tight max-w-[700px] lg:max-w-[1000px]"
-        style="display: block; line-clamp: 3; text-overflow: ellipsis; text-wrap: balance;"
+        class="text-[72px] font-bold leading-tight max-w-[900px]"
+        style="display: block; line-clamp: 2; text-overflow: ellipsis; text-wrap: balance;"
       >
         {{ title }}
       </h1>
 
       <!-- Description -->
-      <p v-if="description" class="text-[24px] lg:text-[32px] opacity-70 max-w-[650px] lg:max-w-[900px] leading-relaxed" style="display: block; line-clamp: 2; text-overflow: ellipsis;">
+      <p
+        v-if="description"
+        class="text-[28px] max-w-[750px] leading-relaxed"
+        :style="{ opacity: 0.65 }"
+        style="display: block; line-clamp: 2; text-overflow: ellipsis;"
+      >
         {{ description }}
       </p>
+
+      <!-- Accent bar -->
+      <div
+        class="w-24 h-1.5 rounded-full mt-2"
+        :style="{
+          backgroundImage: `linear-gradient(to right, ${accentHex}, ${accentHexLight})`,
+        }"
+      />
     </div>
+
+    <!-- Bottom bar -->
+    <div
+      class="absolute bottom-0 left-0 right-0 h-1.5"
+      :style="{
+        backgroundImage: `linear-gradient(to right, ${accentHex}, ${accentHexLight})`,
+      }"
+    />
   </div>
 </template>
