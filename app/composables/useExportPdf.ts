@@ -88,8 +88,9 @@ export function useExportPdf() {
   async function exportToPdf(
     photos: PhotoItem[],
     gap: number,
-    filename = 'fanzine.pdf',
+    options: { showGuides?: boolean; filename?: string } = {},
   ): Promise<void> {
+    const { showGuides = true, filename = 'fanzine.pdf' } = options;
     if (photos.length === 0) return;
 
     isExporting.value = true;
@@ -143,7 +144,9 @@ export function useExportPdf() {
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
 
       // Draw print guides on top of the image (vector, crisp at any zoom)
-      drawPrintGuides(pdf, gap);
+      if (showGuides) {
+        drawPrintGuides(pdf, gap);
+      }
 
       pdf.save(filename);
     }

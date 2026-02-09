@@ -36,27 +36,36 @@
 
     <!-- Actions: Download + How to fold -->
     <div class="flex flex-col items-center gap-3">
-      <UButton
-        :label="$t('preview.download')"
-        icon="i-lucide-download"
-        size="xl"
-        block
-        :loading="isExporting"
-        @click="handleExport"
-      />
+      <div class="flex items-center gap-3 w-full">
+        <UButton
+          :label="$t('preview.download')"
+          icon="i-lucide-download"
+          size="xl"
+          class="flex-1"
+          :loading="isExporting"
+          @click="handleExport"
+        />
+      </div>
+
+      <div class="flex items-center justify-between w-full">
+        <label class="flex items-center gap-2 text-sm text-muted cursor-pointer select-none">
+          <USwitch v-model="pdfGuides" size="sm" />
+          {{ $t('preview.pdfGuides') }}
+        </label>
+        <FoldingTutorial v-model:open="showTutorial">
+          <UButton
+            :label="$t('tutorial.openButton')"
+            icon="i-lucide-book-open-check"
+            variant="outline"
+            color="neutral"
+            size="sm"
+          />
+        </FoldingTutorial>
+      </div>
+
       <p class="text-xs text-muted">
         {{ $t('preview.specs') }}
       </p>
-
-      <FoldingTutorial v-model:open="showTutorial">
-        <UButton
-          :label="$t('tutorial.openButton')"
-          icon="i-lucide-book-open-check"
-          variant="outline"
-          color="neutral"
-          size="sm"
-        />
-      </FoldingTutorial>
     </div>
   </div>
 </template>
@@ -70,6 +79,7 @@ const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
 
 const showTutorial = ref(false);
+const pdfGuides = ref(true);
 
 const tabs = computed<TabsItem[]>(() => [
   {
@@ -86,7 +96,7 @@ const tabs = computed<TabsItem[]>(() => [
 
 async function handleExport(): Promise<void> {
   try {
-    await exportToPdf(photos.value, gap.value);
+    await exportToPdf(photos.value, gap.value, { showGuides: pdfGuides.value });
     toast.add({
       title: t('preview.toastSuccess'),
       description: t('preview.toastSuccessDesc'),
