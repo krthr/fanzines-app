@@ -1,4 +1,5 @@
 import type { PhotoItem } from '~/composables/usePhotoStore';
+import type { PageSlot } from '~/composables/useFanzineLayout';
 
 // A4 landscape at 300 DPI
 const DPI = 300;
@@ -9,6 +10,13 @@ const A4_HEIGHT_PX = Math.round((A4_HEIGHT_MM / 25.4) * DPI); // 2480
 
 const COLS = 4;
 const ROWS = 2;
+
+/** Guide line styling constants (in mm) */
+const GUIDE_LINE_WIDTH = 0.3;
+const CUT_LINE_WIDTH = 0.4;
+const CROP_MARK_LENGTH = 5;
+const CROP_MARK_OFFSET = 2;
+const LABEL_FONT_SIZE = 6;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -33,14 +41,12 @@ function drawImageCover(
   let sx: number, sy: number, sw: number, sh: number;
 
   if (imgRatio > cellRatio) {
-    // Image is wider than cell — crop sides
     sh = img.naturalHeight;
     sw = sh * cellRatio;
     sx = (img.naturalWidth - sw) / 2;
     sy = 0;
   }
   else {
-    // Image is taller than cell — crop top/bottom
     sw = img.naturalWidth;
     sh = sw / cellRatio;
     sx = 0;
@@ -50,8 +56,34 @@ function drawImageCover(
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
+/**
+ * Draw a single image into a grid cell, rotating 180° if needed.
+ */
+function drawCell(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rotated: boolean,
+): void {
+  if (rotated) {
+    ctx.save();
+    // Translate to the center of the cell, rotate 180°, then draw offset
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate(Math.PI);
+    drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+  else {
+    drawImageCover(ctx, img, x, y, w, h);
+  }
+}
+
 export function useExportPdf() {
   const isExporting = ref(false);
+  const { LAYOUT } = useFanzineLayout();
 
   async function exportToPdf(
     photos: PhotoItem[],
@@ -86,14 +118,16 @@ export function useExportPdf() {
         photos.map(photo => loadImage(photo.url)),
       );
 
-      // Draw each image into its grid cell with object-fit: cover behavior
+      // Draw each image into its grid cell, rotating top-row cells 180°
       for (let i = 0; i < images.length; i++) {
         const col = i % COLS;
         const row = Math.floor(i / COLS);
         const x = col * (cellW + gapPx);
         const y = row * (cellH + gapPx);
+        const slot = LAYOUT[i] as PageSlot | undefined;
+        const rotated = slot?.rotated ?? false;
 
-        drawImageCover(ctx, images[i]!, x, y, cellW, cellH);
+        drawCell(ctx, images[i]!, x, y, cellW, cellH, rotated);
       }
 
       // Generate PDF
@@ -104,8 +138,13 @@ export function useExportPdf() {
         format: 'a4',
       });
 
+      // Add the photo grid as a full-page image
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+
+      // Draw print guides on top of the image (vector, crisp at any zoom)
+      drawPrintGuides(pdf, gap);
+
       pdf.save(filename);
     }
     finally {
@@ -117,4 +156,120 @@ export function useExportPdf() {
     exportToPdf,
     isExporting,
   };
+}
+
+// ---------------------------------------------------------------------------
+// PDF print guide helpers (all coordinates in mm)
+// ---------------------------------------------------------------------------
+
+interface JsPdfLike {
+  setDrawColor(r: number, g: number, b: number): void;
+  setLineWidth(width: number): void;
+  setLineDashPattern(dash: number[], phase: number): void;
+  line(x1: number, y1: number, x2: number, y2: number): void;
+  setFontSize(size: number): void;
+  setTextColor(r: number, g: number, b: number): void;
+  text(text: string, x: number, y: number, options?: Record<string, unknown>): void;
+}
+
+function drawPrintGuides(pdf: JsPdfLike, gap: number): void {
+  const gapMm = (gap / 900) * A4_WIDTH_MM;
+  const cellW = (A4_WIDTH_MM - gapMm * (COLS - 1)) / COLS;
+  const cellH = (A4_HEIGHT_MM - gapMm * (ROWS - 1)) / ROWS;
+
+  // --- Fold lines (dashed, light gray) ---
+  pdf.setDrawColor(180, 180, 180);
+  pdf.setLineWidth(GUIDE_LINE_WIDTH);
+  pdf.setLineDashPattern([2, 2], 0);
+
+  // Horizontal center fold
+  const yCenter = cellH + gapMm / 2;
+  pdf.line(0, yCenter, A4_WIDTH_MM, yCenter);
+
+  // Vertical fold lines at 1/4, 1/2, 3/4
+  for (const fraction of [0.25, 0.5, 0.75]) {
+    const xFold = A4_WIDTH_MM * fraction;
+    pdf.line(xFold, 0, xFold, A4_HEIGHT_MM);
+  }
+
+  // --- Cut line (solid red, center horizontal, middle half only) ---
+  pdf.setDrawColor(220, 80, 80);
+  pdf.setLineWidth(CUT_LINE_WIDTH);
+  pdf.setLineDashPattern([], 0); // solid
+
+  const cutX1 = A4_WIDTH_MM * 0.25;
+  const cutX2 = A4_WIDTH_MM * 0.75;
+  pdf.line(cutX1, yCenter, cutX2, yCenter);
+
+  // Scissors symbol: small "X" at the start of the cut line
+  pdf.setDrawColor(220, 80, 80);
+  pdf.setLineWidth(0.25);
+  const sSize = 1.5;
+  pdf.line(cutX1 - sSize, yCenter - sSize, cutX1 + sSize, yCenter + sSize);
+  pdf.line(cutX1 - sSize, yCenter + sSize, cutX1 + sSize, yCenter - sSize);
+
+  // --- Crop marks (dark gray, solid, at the four corners) ---
+  pdf.setDrawColor(100, 100, 100);
+  pdf.setLineWidth(0.2);
+  pdf.setLineDashPattern([], 0);
+
+  const corners: [number, number, number, number][] = [
+    // [hLineX1, hLineX2, vLineY1, vLineY2] relative to corner point
+    // Top-left
+    ...cropMarkLines(0, 0, 1, 1),
+    // Top-right
+    ...cropMarkLines(A4_WIDTH_MM, 0, -1, 1),
+    // Bottom-left
+    ...cropMarkLines(0, A4_HEIGHT_MM, 1, -1),
+    // Bottom-right
+    ...cropMarkLines(A4_WIDTH_MM, A4_HEIGHT_MM, -1, -1),
+  ];
+
+  for (const [x1, y1, x2, y2] of corners) {
+    pdf.line(x1, y1, x2, y2);
+  }
+
+  // --- Page labels (tiny text near each cell) ---
+  pdf.setFontSize(LABEL_FONT_SIZE);
+  pdf.setTextColor(160, 160, 160);
+
+  for (const slot of useFanzineLayout().LAYOUT) {
+    const cx = slot.col * (cellW + gapMm) + cellW / 2;
+    const cy = slot.row * (cellH + gapMm);
+
+    // Place label just inside the top of each cell
+    const labelY = cy + 3;
+    const label = slot.role === 'frontCover' ? 'FRONT'
+      : slot.role === 'backCover' ? 'BACK'
+      : slot.role.replace('page', 'P');
+
+    pdf.text(label, cx, labelY, { align: 'center' });
+
+    // Add rotation indicator for top-row cells
+    if (slot.rotated) {
+      pdf.setFontSize(5);
+      pdf.text('(180\u00B0)', cx, labelY + 3, { align: 'center' });
+      pdf.setFontSize(LABEL_FONT_SIZE);
+    }
+  }
+}
+
+/**
+ * Generate two crop-mark line segments for a corner point.
+ * `dx` and `dy` indicate the direction pointing inward (+1 or -1).
+ */
+function cropMarkLines(
+  cx: number,
+  cy: number,
+  dx: number,
+  dy: number,
+): [number, number, number, number][] {
+  const offset = CROP_MARK_OFFSET;
+  const len = CROP_MARK_LENGTH;
+  return [
+    // Horizontal mark
+    [cx + offset * dx, cy, cx + (offset + len) * dx, cy],
+    // Vertical mark
+    [cx, cy + offset * dy, cx, cy + (offset + len) * dy],
+  ];
 }
