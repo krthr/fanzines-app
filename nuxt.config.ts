@@ -1,3 +1,5 @@
+import type { ConfigDefaults } from "posthog-js";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -9,7 +11,6 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@nuxtjs/seo",
-    "@nuxt/scripts",
   ],
 
   nitro: {
@@ -66,16 +67,11 @@ export default defineNuxtConfig({
     },
   },
 
-  $production: {
-    scripts: {
-      registry: {
-        posthog: {
-          apiKey: "phc_2q7YqkDc6YWCcKbABw17og6q1BKTSV00hTpmkGLLuV7",
-          autocapture: true,
-          capturePageview: true,
-          capturePageleave: true,
-        },
-      },
+  runtimeConfig: {
+    public: {
+      posthogPublicKey: "phc_2q7YqkDc6YWCcKbABw17og6q1BKTSV00hTpmkGLLuV7",
+      posthogHost: "https://us.i.posthog.com",
+      posthogDefaults: "2025-11-30" satisfies ConfigDefaults,
     },
   },
 });
