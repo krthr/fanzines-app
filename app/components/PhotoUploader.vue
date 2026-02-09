@@ -14,17 +14,10 @@
     />
 
     <div
-      v-if="isUploading"
-      class="flex items-center justify-center gap-2 py-4 text-sm text-muted"
-    >
-      <UIcon name="i-lucide-loader-circle" class="size-4 animate-spin" />
-      Uploading photos...
-    </div>
-
-    <div
-      v-if="photos.length"
+      v-if="photos.length || uploadQueue.length"
       class="grid grid-cols-4 gap-3"
     >
+      <!-- Completed uploads -->
       <div
         v-for="(photo, index) in photos"
         :key="photo.id"
@@ -46,12 +39,51 @@
           {{ index + 1 }}
         </div>
       </div>
+
+      <!-- In-flight uploads -->
+      <div
+        v-for="item in uploadQueue"
+        :key="item.id"
+        class="relative aspect-[3/4] rounded-lg overflow-hidden bg-elevated"
+      >
+        <img
+          :src="item.previewUrl"
+          alt="Uploading..."
+          class="w-full h-full object-cover"
+          :class="{ 'opacity-50': item.status !== 'done' }"
+        >
+        <div
+          v-if="item.status === 'error'"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/60"
+        >
+          <UIcon name="i-lucide-circle-alert" class="size-5 text-red-400" />
+          <span class="text-xs text-red-300">Failed</span>
+        </div>
+        <div
+          v-else-if="item.status !== 'done'"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40"
+        >
+          <UIcon name="i-lucide-loader-circle" class="size-5 text-white animate-spin" />
+          <span class="text-xs text-white/80">
+            {{ item.status === 'compressing' ? 'Compressing...' : 'Uploading...' }}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const { photos, addPhotos, removePhoto, isUploading, isFull, count, MAX_PHOTOS } = usePhotoStore();
+const {
+  photos,
+  addPhotos,
+  removePhoto,
+  isUploading,
+  uploadQueue,
+  isFull,
+  count,
+  MAX_PHOTOS,
+} = usePhotoStore();
 
 const files = ref<File[] | null>(null);
 

@@ -5,8 +5,6 @@ const ALLOWED_TYPES = new Set([
   'image/gif',
 ]);
 
-const MAX_FILES = 8;
-
 export default defineEventHandler(async (event) => {
   const formData = await readMultipartFormData(event);
 
@@ -16,39 +14,37 @@ export default defineEventHandler(async (event) => {
 
   const fileParts = formData.filter((part) => part.filename && part.type);
 
-  if (fileParts.length > MAX_FILES) {
+  if (fileParts.length !== 1) {
     throw createError({
       statusCode: 400,
-      message: `Too many files. Maximum is ${MAX_FILES}.`,
+      message: 'Exactly one file per request is required.',
     });
   }
 
-  const results: { id: string; url: string }[] = [];
+  const part = fileParts[0]!;
 
-  for (const part of fileParts) {
-    if (!part.type || !ALLOWED_TYPES.has(part.type)) {
-      throw createError({
-        statusCode: 400,
-        message: `Unsupported file type: ${part.type}. Allowed: JPEG, PNG, WebP, GIF.`,
-      });
-    }
-
-    const id = crypto.randomUUID();
-    const ext = part.filename?.split('.').pop() ?? 'bin';
-    const pathname = `photos/${id}.${ext}`;
-
-    await blob.put(pathname, part.data, {
-      contentType: part.type,
-      customMetadata: {
-        originalFilename: part.filename ?? 'unknown',
-      },
+  if (!part.type || !ALLOWED_TYPES.has(part.type)) {
+    throw createError({
+      statusCode: 400,
+      message: `Unsupported file type: ${part.type}. Allowed: JPEG, PNG, WebP, GIF.`,
     });
+  }
 
-    results.push({
+  const id = crypto.randomUUID();
+  const ext = part.filename?.split('.').pop() ?? 'bin';
+  const pathname = `photos/${id}.${ext}`;
+
+  await blob.put(pathname, part.data, {
+    contentType: part.type,
+    customMetadata: {
+      originalFilename: part.filename ?? 'unknown',
+    },
+  });
+
+  return {
+    photo: {
       id: pathname,
       url: `/api/photos/${pathname}`,
-    });
-  }
-
-  return { photos: results };
+    },
+  };
 });
