@@ -3,13 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   css: ['~/assets/css/main.css'],
   devtools: {enabled: true},
-  modules: [
-    '@nuxt/ui',
-    '@nuxthub/core',
-    '@nuxt/fonts',
-    '@nuxtjs/i18n',
-    '@nuxtjs/seo',
-  ],
+  modules: ['@nuxt/ui', '@nuxthub/core', '@nuxt/fonts', '@nuxtjs/i18n', '@nuxtjs/seo', '@nuxt/scripts'],
 
   nitro: {
     prerender: {

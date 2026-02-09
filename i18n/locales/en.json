@@ -131,5 +131,15 @@
     "toastFailed": "Export failed",
     "toastFailedDesc": "Something went wrong generating the PDF."
   },
+  "whatIs": {
+    "title": "What is a Fanzine?",
+    "description": "A fanzine (fan magazine) is a small-circulation publication produced by enthusiasts. In this app, we help you create a 'mini-zine' from a single sheet of A4 paper. By folding and cutting it in a specific way, you get an 8-page booklet without needing staples or binding.",
+    "features": {
+      "0": "One sheet of paper",
+      "1": "8 pages + covers",
+      "2": "No staples needed",
+      "3": "Pocket sized"
+    }
+  },
   "pageTitle": "Fanzine - Create Print-Ready Photo Zines"
 }

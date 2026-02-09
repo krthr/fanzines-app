@@ -167,6 +167,9 @@
           :disabled="!canProceed"
           @click="stepper?.next()" />
       </div>
+
+      <!-- What is a Fanzine? -->
+      <WhatIsFanzine />
     </div>
   </UContainer>
 </template>

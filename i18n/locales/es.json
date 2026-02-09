@@ -131,5 +131,15 @@
     "toastFailed": "Error al exportar",
     "toastFailedDesc": "Algo salió mal al generar el PDF."
   },
+  "whatIs": {
+    "title": "¿Qué es un fanzine?",
+    "description": "Un fanzine es una publicación de pequeña tirada creada por aficionados. En esta app, te ayudamos a crear un 'mini-zine' a partir de una sola hoja de papel A4. Doblándola y cortándola de una forma específica, obtienes un librito de 8 páginas sin necesidad de grapas ni encuadernación.",
+    "features": {
+      "0": "Una hoja de papel",
+      "1": "8 páginas + portadas",
+      "2": "Sin grapas",
+      "3": "Tamaño bolsillo"
+    }
+  },
   "pageTitle": "Fanzine - Crea fanzines de fotos listos para imprimir"
 }
