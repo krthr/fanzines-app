@@ -1,75 +1,49 @@
-# Nuxt Minimal Starter
+# Fanzine
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+> Create print-ready photo zines directly in your browser.
+
+Pick 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF. Your photos never leave your device.
+
+## Features
+
+- **Privacy First:** Photos are processed locally and never uploaded to a server.
+- **Easy Layout:** Drag and drop to arrange your photos.
+- **Print Ready:** Exports a high-quality A4 PDF optimized for printing.
+- **Folding Guide:** Includes instructions on how to fold your A4 sheet into a zine booklet.
+
+## Tech Stack
+
+- **Framework:** [Nuxt 4](https://nuxt.com)
+- **UI:** [Nuxt UI](https://ui.nuxt.com) & [Tailwind CSS 4](https://tailwindcss.com)
+- **Language:** TypeScript
 
 ## Setup
 
-Make sure to install dependencies:
+This project uses [Yarn 4](https://yarnpkg.com).
 
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
+# Install dependencies
 yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+## Development
 
 Start the development server on `http://localhost:3000`:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
 yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+## Build
 
 Build the application for production:
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
 yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+Preview the production build locally:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
 yarn preview
-
-# bun
-bun run preview
 ```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
