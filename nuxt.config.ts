@@ -11,6 +11,13 @@ export default defineNuxtConfig({
     '@nuxtjs/seo',
   ],
 
+  nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: ['/', '/es'],
+    },
+  },
+
   site: {
     url: 'https://fanzines.app',
     name: 'Fanzine',
