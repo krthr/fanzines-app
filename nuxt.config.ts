@@ -4,9 +4,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxthub/core', '@nuxt/fonts', '@nuxtjs/i18n'],
-  hub: {
-    blob: true,
-  },
   fonts: {
     families: [
       {

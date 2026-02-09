@@ -21,20 +21,26 @@
       multiple
       accept="image/*"
       icon="i-lucide-image"
-      :label="uploadLabel"
+      :label="pickerLabel"
       :description="$t('uploader.fileTypes', { count, max: MAX_PHOTOS })"
-      :disabled="isFull || isUploading"
+      :disabled="isFull"
       :preview="false"
       class="min-h-48"
       @update:model-value="onFilesChanged"
     />
 
+    <!-- Privacy notice -->
+    <div class="flex items-center gap-2 text-xs text-muted">
+      <UIcon name="i-lucide-shield-check" class="size-4 text-primary shrink-0" />
+      <span>{{ $t('uploader.privacyNotice') }}</span>
+    </div>
+
     <!-- Thumbnail grid -->
     <div
-      v-if="photos.length || uploadQueue.length"
+      v-if="photos.length"
       class="grid grid-cols-4 gap-3"
     >
-      <!-- Completed uploads -->
+      <!-- Photos -->
       <div
         v-for="(photo, index) in photos"
         :key="photo.id"
@@ -57,36 +63,6 @@
         </div>
       </div>
 
-      <!-- In-flight uploads -->
-      <div
-        v-for="item in uploadQueue"
-        :key="item.id"
-        class="relative aspect-[3/4] rounded-lg overflow-hidden bg-elevated ring-1 ring-zinc-200 dark:ring-zinc-700"
-      >
-        <img
-          :src="item.previewUrl"
-          :alt="$t('uploader.uploading')"
-          class="w-full h-full object-cover"
-          :class="{ 'opacity-40': item.status !== 'done' }"
-        >
-        <div
-          v-if="item.status === 'error'"
-          class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60"
-        >
-          <UIcon name="i-lucide-circle-alert" class="size-6 text-red-400" />
-          <span class="text-xs text-red-300 font-medium">{{ $t('uploader.failed') }}</span>
-        </div>
-        <div
-          v-else-if="item.status !== 'done'"
-          class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/40"
-        >
-          <UIcon name="i-lucide-loader-circle" class="size-6 text-white animate-spin" />
-          <span class="text-xs text-white/80 font-medium">
-            {{ item.status === 'compressing' ? $t('uploader.compressing') : $t('uploader.uploading') }}
-          </span>
-        </div>
-      </div>
-
       <!-- Empty slots -->
       <div
         v-for="n in emptySlots"
@@ -94,7 +70,7 @@
         class="aspect-[3/4] rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center gap-1"
       >
         <UIcon name="i-lucide-image-plus" class="size-5 text-zinc-300 dark:text-zinc-600" />
-        <span class="text-xs text-zinc-400 dark:text-zinc-600">{{ count + uploadQueue.length + n }}</span>
+        <span class="text-xs text-zinc-400 dark:text-zinc-600">{{ count + n }}</span>
       </div>
     </div>
   </div>
@@ -106,8 +82,6 @@ const {
   photos,
   addPhotos,
   removePhoto,
-  isUploading,
-  uploadQueue,
   isFull,
   count,
   MAX_PHOTOS,
@@ -116,41 +90,27 @@ const {
 const toast = useToast();
 const files = ref<File[] | null>(null);
 
-const emptySlots = computed(() => {
-  const filled = count.value + uploadQueue.value.length;
-  return Math.max(0, MAX_PHOTOS - filled);
-});
+const emptySlots = computed(() => Math.max(0, MAX_PHOTOS - count.value));
 
-const uploadLabel = computed(() => {
-  if (isUploading.value) {
-    return t('uploader.uploading');
-  }
+const pickerLabel = computed(() => {
   if (isFull.value) {
-    return t('uploader.allUploaded');
+    return t('uploader.allSelected');
   }
   return t('uploader.dropHint');
 });
 
-async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
-  if (!value || value.length === 0) {
-    return;
-  }
-  try {
-    await addPhotos(value);
-  } catch {
-    toast.add({
-      title: t('uploader.toastUploadFailed'),
-      description: t('uploader.toastUploadFailedDesc'),
-      color: 'error',
-    });
-  }
+function onFilesChanged(value: File[] | null | undefined): void {
+  if (!value || value.length === 0) return;
+
+  addPhotos(value);
+
   nextTick(() => {
     files.value = null;
   });
 }
 
-async function handleRemove(index: number): Promise<void> {
-  await removePhoto(index);
+function handleRemove(index: number): void {
+  removePhoto(index);
   toast.add({
     title: t('uploader.toastRemoved'),
     color: 'neutral',

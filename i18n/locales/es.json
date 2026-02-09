@@ -9,15 +9,15 @@
     "badge": "Creador de Fanzines",
     "titleStart": "Crea Tu",
     "titleHighlight": "Fanzine de Fotos",
-    "description": "Sube 8 fotos, organiza el diseno y exporta un PDF listo para imprimir en A4 -- todo desde tu navegador."
+    "description": "Elige 8 fotos, organiza el diseno y exporta un PDF listo para imprimir en A4 -- todo desde tu navegador. Tus fotos nunca salen de tu dispositivo."
   },
   "progress": {
     "photos": "{count}/{max} fotos"
   },
   "steps": {
     "upload": {
-      "title": "Subir",
-      "description": "Agrega tus fotos"
+      "title": "Elegir",
+      "description": "Selecciona tus fotos"
     },
     "arrange": {
       "title": "Organizar",
@@ -29,7 +29,7 @@
     }
   },
   "uploadCard": {
-    "title": "Sube Tus Fotos"
+    "title": "Selecciona Tus Fotos"
   },
   "arrangeCard": {
     "title": "Organizar Diseno",
@@ -45,15 +45,11 @@
     "next": "Siguiente"
   },
   "uploader": {
-    "progress": "Progreso de subida",
-    "uploading": "Subiendo...",
-    "allUploaded": "Todas las fotos subidas",
+    "progress": "Fotos seleccionadas",
+    "allSelected": "Todas las fotos seleccionadas",
     "dropHint": "Arrastra tus fotos aqui o haz clic para buscar",
-    "fileTypes": "JPG, PNG, WebP o GIF. {count}/{max} fotos subidas.",
-    "compressing": "Comprimiendo...",
-    "failed": "Error",
-    "toastUploadFailed": "Error al subir",
-    "toastUploadFailedDesc": "Algunas fotos no pudieron subirse. Intenta de nuevo.",
+    "fileTypes": "JPG, PNG, WebP o GIF. {count}/{max} fotos seleccionadas.",
+    "privacyNotice": "Tus fotos permanecen en tu dispositivo y nunca se envian a ningun servidor.",
     "toastRemoved": "Foto eliminada"
   },
   "layout": {

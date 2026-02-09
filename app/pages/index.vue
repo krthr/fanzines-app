@@ -24,7 +24,7 @@
             : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'"
         >
           <UIcon
-            :name="count === MAX_PHOTOS ? 'i-lucide-check-circle' : 'i-lucide-image'"
+            :name="count === MAX_PHOTOS ? 'i-lucide-check-circle' : 'i-lucide-image-plus'"
             class="size-4"
           />
           <span>{{ $t('progress.photos', { count, max: MAX_PHOTOS }) }}</span>
@@ -43,7 +43,7 @@
             <UCard>
               <template #header>
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-image-plus" class="size-5 text-primary" />
+                  <UIcon name="i-lucide-image" class="size-5 text-primary" />
                   <h2 class="text-lg font-semibold">{{ $t('uploadCard.title') }}</h2>
                 </div>
               </template>
@@ -191,7 +191,7 @@ const steps = computed<StepperItem[]>(() => [
     slot: 'upload' as const,
     title: t('steps.upload.title'),
     description: t('steps.upload.description'),
-    icon: 'i-lucide-image-plus',
+    icon: 'i-lucide-image',
   },
   {
     slot: 'arrange' as const,

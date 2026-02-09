@@ -9,15 +9,15 @@
     "badge": "Photo Zine Creator",
     "titleStart": "Create Your",
     "titleHighlight": "Photo Zine",
-    "description": "Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser."
+    "description": "Pick 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser. Your photos never leave your device."
   },
   "progress": {
     "photos": "{count}/{max} photos"
   },
   "steps": {
     "upload": {
-      "title": "Upload",
-      "description": "Add your photos"
+      "title": "Select",
+      "description": "Pick your photos"
     },
     "arrange": {
       "title": "Arrange",
@@ -29,7 +29,7 @@
     }
   },
   "uploadCard": {
-    "title": "Upload Your Photos"
+    "title": "Select Your Photos"
   },
   "arrangeCard": {
     "title": "Arrange Layout",
@@ -45,15 +45,11 @@
     "next": "Next Step"
   },
   "uploader": {
-    "progress": "Upload progress",
-    "uploading": "Uploading...",
-    "allUploaded": "All photos uploaded",
+    "progress": "Selected photos",
+    "allSelected": "All photos selected",
     "dropHint": "Drop your photos here or click to browse",
-    "fileTypes": "JPG, PNG, WebP or GIF. {count}/{max} photos uploaded.",
-    "compressing": "Compressing...",
-    "failed": "Failed",
-    "toastUploadFailed": "Upload failed",
-    "toastUploadFailedDesc": "Some photos could not be uploaded. Please try again.",
+    "fileTypes": "JPG, PNG, WebP or GIF. {count}/{max} photos selected.",
+    "privacyNotice": "Your photos stay on your device and are never sent to any server.",
     "toastRemoved": "Photo removed"
   },
   "layout": {
