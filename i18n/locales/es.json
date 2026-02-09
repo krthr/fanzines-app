@@ -1,0 +1,74 @@
+{
+  "app": {
+    "title": "Fanzine",
+    "tagline": "Crea fanzines de fotos listos para imprimir",
+    "copyright": "Fanzine",
+    "toggleDarkMode": "Cambiar modo oscuro"
+  },
+  "hero": {
+    "badge": "Creador de Fanzines",
+    "titleStart": "Crea Tu",
+    "titleHighlight": "Fanzine de Fotos",
+    "description": "Sube 8 fotos, organiza el diseno y exporta un PDF listo para imprimir en A4 -- todo desde tu navegador."
+  },
+  "progress": {
+    "photos": "{count}/{max} fotos"
+  },
+  "steps": {
+    "upload": {
+      "title": "Subir",
+      "description": "Agrega tus fotos"
+    },
+    "arrange": {
+      "title": "Organizar",
+      "description": "Reordena y personaliza"
+    },
+    "export": {
+      "title": "Exportar",
+      "description": "Descarga tu fanzine"
+    }
+  },
+  "uploadCard": {
+    "title": "Sube Tus Fotos"
+  },
+  "arrangeCard": {
+    "title": "Organizar Diseno",
+    "gapLabel": "Espacio",
+    "apply": "Aplicar",
+    "swapHint": "Haz clic en una foto para seleccionarla, luego haz clic en otra para intercambiar sus posiciones."
+  },
+  "exportCard": {
+    "title": "Exporta Tu Fanzine"
+  },
+  "nav": {
+    "back": "Atras",
+    "next": "Siguiente"
+  },
+  "uploader": {
+    "progress": "Progreso de subida",
+    "uploading": "Subiendo...",
+    "allUploaded": "Todas las fotos subidas",
+    "dropHint": "Arrastra tus fotos aqui o haz clic para buscar",
+    "fileTypes": "JPG, PNG, WebP o GIF. {count}/{max} fotos subidas.",
+    "compressing": "Comprimiendo...",
+    "failed": "Error",
+    "toastUploadFailed": "Error al subir",
+    "toastUploadFailedDesc": "Algunas fotos no pudieron subirse. Intenta de nuevo.",
+    "toastRemoved": "Foto eliminada"
+  },
+  "grid": {
+    "photoAlt": "Foto {n}",
+    "swap": "Intercambiar",
+    "placeHere": "Colocar aqui"
+  },
+  "preview": {
+    "description": "Asi se vera tu fanzine impreso en papel A4 horizontal.",
+    "download": "Descargar PDF",
+    "specs": "A4 horizontal, 300 DPI, calidad de impresion",
+    "toastSuccess": "PDF exportado!",
+    "toastSuccessDesc": "Tu fanzine se descargo correctamente.",
+    "toastFailed": "Error al exportar",
+    "toastFailedDesc": "Algo salio mal al generar el PDF."
+  },
+  "pageTitle": "Fanzine - Crea Fanzines de Fotos Listos para Imprimir"
+}

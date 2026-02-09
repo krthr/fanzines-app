@@ -16,7 +16,7 @@
     >
       <img
         :src="photo.url"
-        :alt="`Photo ${index + 1}`"
+        :alt="$t('grid.photoAlt', { n: index + 1 })"
         class="w-full h-full object-cover select-none pointer-events-none transition-transform duration-200"
       >
       <!-- Number overlay -->
@@ -31,14 +31,14 @@
         v-if="selectedIndex === index && !readonly"
         class="absolute inset-0 flex items-center justify-center bg-primary/20"
       >
-        <UBadge label="Swap" size="md" color="primary" variant="solid" class="shadow-lg" />
+        <UBadge :label="$t('grid.swap')" size="md" color="primary" variant="solid" class="shadow-lg" />
       </div>
       <!-- Target hint when one is selected -->
       <div
         v-if="selectedIndex !== null && selectedIndex !== index && !readonly"
         class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/30"
       >
-        <UBadge label="Place here" size="sm" color="neutral" variant="solid" />
+        <UBadge :label="$t('grid.placeHere')" size="sm" color="neutral" variant="solid" />
       </div>
     </div>
   </div>

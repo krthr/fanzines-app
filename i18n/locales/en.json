@@ -1,0 +1,74 @@
+{
+  "app": {
+    "title": "Fanzine",
+    "tagline": "Create print-ready photo zines",
+    "copyright": "Fanzine",
+    "toggleDarkMode": "Toggle dark mode"
+  },
+  "hero": {
+    "badge": "Photo Zine Creator",
+    "titleStart": "Create Your",
+    "titleHighlight": "Photo Zine",
+    "description": "Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF -- all in your browser."
+  },
+  "progress": {
+    "photos": "{count}/{max} photos"
+  },
+  "steps": {
+    "upload": {
+      "title": "Upload",
+      "description": "Add your photos"
+    },
+    "arrange": {
+      "title": "Arrange",
+      "description": "Reorder and customize"
+    },
+    "export": {
+      "title": "Export",
+      "description": "Download your fanzine"
+    }
+  },
+  "uploadCard": {
+    "title": "Upload Your Photos"
+  },
+  "arrangeCard": {
+    "title": "Arrange Layout",
+    "gapLabel": "Gap",
+    "apply": "Apply",
+    "swapHint": "Click a photo to select it, then click another to swap their positions."
+  },
+  "exportCard": {
+    "title": "Export Your Zine"
+  },
+  "nav": {
+    "back": "Back",
+    "next": "Next Step"
+  },
+  "uploader": {
+    "progress": "Upload progress",
+    "uploading": "Uploading...",
+    "allUploaded": "All photos uploaded",
+    "dropHint": "Drop your photos here or click to browse",
+    "fileTypes": "JPG, PNG, WebP or GIF. {count}/{max} photos uploaded.",
+    "compressing": "Compressing...",
+    "failed": "Failed",
+    "toastUploadFailed": "Upload failed",
+    "toastUploadFailedDesc": "Some photos could not be uploaded. Please try again.",
+    "toastRemoved": "Photo removed"
+  },
+  "grid": {
+    "photoAlt": "Photo {n}",
+    "swap": "Swap",
+    "placeHere": "Place here"
+  },
+  "preview": {
+    "description": "This is how your zine will look when printed on A4 landscape paper.",
+    "download": "Download PDF",
+    "specs": "A4 landscape, 300 DPI, print-ready quality",
+    "toastSuccess": "PDF exported!",
+    "toastSuccessDesc": "Your zine has been downloaded successfully.",
+    "toastFailed": "Export failed",
+    "toastFailedDesc": "Something went wrong generating the PDF."
+  },
+  "pageTitle": "Fanzine - Create Print-Ready Photo Zines"
+}

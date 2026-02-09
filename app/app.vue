@@ -1,7 +1,7 @@
 <template>
   <NuxtRouteAnnouncer />
 
-  <UApp>
+  <UApp :locale="uiLocale">
     <UHeader title="Fanzine" to="/">
       <template #title>
         <div class="flex items-center gap-2">
@@ -11,7 +11,14 @@
       </template>
 
       <template #right>
-        <UTooltip text="Toggle dark mode">
+        <ULocaleSelect
+          :model-value="locale"
+          :locales="availableLocales"
+          class="w-40"
+          @update:model-value="setLocale($event as 'en' | 'es')"
+        />
+
+        <UTooltip :text="$t('app.toggleDarkMode')">
           <UColorModeButton />
         </UTooltip>
       </template>
@@ -26,15 +33,33 @@
     <UFooter>
       <template #left>
         <p class="text-muted text-sm">
-          Create print-ready photo zines
+          {{ $t('app.tagline') }}
         </p>
       </template>
 
       <template #right>
         <p class="text-muted text-xs">
-          &copy; {{ new Date().getFullYear() }} Fanzine
+          &copy; {{ new Date().getFullYear() }} {{ $t('app.copyright') }}
         </p>
       </template>
     </UFooter>
   </UApp>
 </template>
+
+<script setup lang="ts">
+import { en, es } from '@nuxt/ui/locale';
+
+const uiLocaleMap: Record<string, typeof en> = { en, es };
+
+const { locale, setLocale } = useI18n();
+
+const uiLocale = computed(() => uiLocaleMap[locale.value] ?? en);
+
+const availableLocales = [en, es];
+
+useHead({
+  htmlAttrs: {
+    lang: locale,
+  },
+});
+</script>

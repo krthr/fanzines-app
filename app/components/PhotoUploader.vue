@@ -3,7 +3,7 @@
     <!-- Progress bar -->
     <div v-if="count > 0" class="space-y-2">
       <div class="flex items-center justify-between text-sm">
-        <span class="text-muted">Upload progress</span>
+        <span class="text-muted">{{ $t('uploader.progress') }}</span>
         <span class="font-medium" :class="isFull ? 'text-primary' : ''">
           {{ count }}/{{ MAX_PHOTOS }}
         </span>
@@ -22,7 +22,7 @@
       accept="image/*"
       icon="i-lucide-image"
       :label="uploadLabel"
-      :description="`JPG, PNG, WebP or GIF. ${count}/${MAX_PHOTOS} photos uploaded.`"
+      :description="$t('uploader.fileTypes', { count, max: MAX_PHOTOS })"
       :disabled="isFull || isUploading"
       :preview="false"
       class="min-h-48"
@@ -42,7 +42,7 @@
       >
         <img
           :src="photo.url"
-          :alt="`Photo ${index + 1}`"
+          :alt="$t('grid.photoAlt', { n: index + 1 })"
           class="w-full h-full object-cover"
         >
         <button
@@ -65,7 +65,7 @@
       >
         <img
           :src="item.previewUrl"
-          alt="Uploading..."
+          :alt="$t('uploader.uploading')"
           class="w-full h-full object-cover"
           :class="{ 'opacity-40': item.status !== 'done' }"
         >
@@ -74,7 +74,7 @@
           class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60"
         >
           <UIcon name="i-lucide-circle-alert" class="size-6 text-red-400" />
-          <span class="text-xs text-red-300 font-medium">Failed</span>
+          <span class="text-xs text-red-300 font-medium">{{ $t('uploader.failed') }}</span>
         </div>
         <div
           v-else-if="item.status !== 'done'"
@@ -82,7 +82,7 @@
         >
           <UIcon name="i-lucide-loader-circle" class="size-6 text-white animate-spin" />
           <span class="text-xs text-white/80 font-medium">
-            {{ item.status === 'compressing' ? 'Compressing...' : 'Uploading...' }}
+            {{ item.status === 'compressing' ? $t('uploader.compressing') : $t('uploader.uploading') }}
           </span>
         </div>
       </div>
@@ -101,6 +101,7 @@
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n();
 const {
   photos,
   addPhotos,
@@ -122,12 +123,12 @@ const emptySlots = computed(() => {
 
 const uploadLabel = computed(() => {
   if (isUploading.value) {
-    return 'Uploading...';
+    return t('uploader.uploading');
   }
   if (isFull.value) {
-    return 'All photos uploaded';
+    return t('uploader.allUploaded');
   }
-  return 'Drop your photos here or click to browse';
+  return t('uploader.dropHint');
 });
 
 async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
@@ -138,8 +139,8 @@ async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
     await addPhotos(value);
   } catch {
     toast.add({
-      title: 'Upload failed',
-      description: 'Some photos could not be uploaded. Please try again.',
+      title: t('uploader.toastUploadFailed'),
+      description: t('uploader.toastUploadFailedDesc'),
       color: 'error',
     });
   }
@@ -151,7 +152,7 @@ async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
 async function handleRemove(index: number): Promise<void> {
   await removePhoto(index);
   toast.add({
-    title: 'Photo removed',
+    title: t('uploader.toastRemoved'),
     color: 'neutral',
   });
 }

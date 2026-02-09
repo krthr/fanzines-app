@@ -5,14 +5,13 @@
       <div class="text-center mb-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
           <UIcon name="i-lucide-sparkles" class="size-4" />
-          <span>Photo Zine Creator</span>
+          <span>{{ $t('hero.badge') }}</span>
         </div>
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
-          Create Your <span class="text-primary">Photo Zine</span>
+          {{ $t('hero.titleStart') }} <span class="text-primary">{{ $t('hero.titleHighlight') }}</span>
         </h1>
         <p class="text-muted text-lg max-w-xl mx-auto">
-          Upload 8 photos, arrange them in a beautiful layout, and export a print-ready A4 PDF
-          -- all in your browser.
+          {{ $t('hero.description') }}
         </p>
       </div>
 
@@ -28,7 +27,7 @@
             :name="count === MAX_PHOTOS ? 'i-lucide-check-circle' : 'i-lucide-image'"
             class="size-4"
           />
-          <span>{{ count }}/{{ MAX_PHOTOS }} photos</span>
+          <span>{{ $t('progress.photos', { count, max: MAX_PHOTOS }) }}</span>
         </div>
       </div>
 
@@ -45,7 +44,7 @@
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-image-plus" class="size-5 text-primary" />
-                  <h2 class="text-lg font-semibold">Upload Your Photos</h2>
+                  <h2 class="text-lg font-semibold">{{ $t('uploadCard.title') }}</h2>
                 </div>
               </template>
 
@@ -61,11 +60,11 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <UIcon name="i-lucide-layout-grid" class="size-5 text-primary" />
-                    <h2 class="text-lg font-semibold">Arrange Layout</h2>
+                    <h2 class="text-lg font-semibold">{{ $t('arrangeCard.title') }}</h2>
                   </div>
                   <div class="flex items-center gap-3">
                     <label class="text-sm font-medium text-muted shrink-0">
-                      Gap
+                      {{ $t('arrangeCard.gapLabel') }}
                     </label>
                     <USlider
                       v-model="draftGap"
@@ -78,7 +77,7 @@
                       {{ draftGap }}px
                     </span>
                     <UButton
-                      label="Apply"
+                      :label="$t('arrangeCard.apply')"
                       icon="i-lucide-check"
                       size="xs"
                       variant="soft"
@@ -91,7 +90,7 @@
 
               <div class="space-y-3">
                 <p class="text-sm text-muted">
-                  Click a photo to select it, then click another to swap their positions.
+                  {{ $t('arrangeCard.swapHint') }}
                 </p>
 
                 <div class="rounded-lg overflow-hidden paper-shadow">
@@ -112,7 +111,7 @@
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-download" class="size-5 text-primary" />
-                  <h2 class="text-lg font-semibold">Export Your Zine</h2>
+                  <h2 class="text-lg font-semibold">{{ $t('exportCard.title') }}</h2>
                 </div>
               </template>
 
@@ -125,7 +124,7 @@
       <!-- Navigation -->
       <div class="flex justify-between mt-8">
         <UButton
-          label="Back"
+          :label="$t('nav.back')"
           icon="i-lucide-arrow-left"
           variant="outline"
           color="neutral"
@@ -136,7 +135,7 @@
 
         <UButton
           v-if="stepper?.hasNext"
-          label="Next Step"
+          :label="$t('nav.next')"
           trailing-icon="i-lucide-arrow-right"
           size="lg"
           :disabled="!canProceed"
@@ -150,6 +149,7 @@
 <script setup lang="ts">
 import type { StepperItem } from '@nuxt/ui';
 
+const { t } = useI18n();
 const { photos, gap, reorder, count, MAX_PHOTOS } = usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.
@@ -160,26 +160,26 @@ function applyGap(): void {
   gap.value = draftGap.value;
 }
 
-const steps: StepperItem[] = [
+const steps = computed<StepperItem[]>(() => [
   {
     slot: 'upload' as const,
-    title: 'Upload',
-    description: 'Add your photos',
+    title: t('steps.upload.title'),
+    description: t('steps.upload.description'),
     icon: 'i-lucide-image-plus',
   },
   {
     slot: 'arrange' as const,
-    title: 'Arrange',
-    description: 'Reorder and customize',
+    title: t('steps.arrange.title'),
+    description: t('steps.arrange.description'),
     icon: 'i-lucide-layout-grid',
   },
   {
     slot: 'export' as const,
-    title: 'Export',
-    description: 'Download your fanzine',
+    title: t('steps.export.title'),
+    description: t('steps.export.description'),
     icon: 'i-lucide-download',
   },
-];
+]);
 
 const stepper = useTemplateRef('stepper');
 
@@ -190,6 +190,6 @@ const canProceed = computed(() => {
 });
 
 useHead({
-  title: 'Fanzine - Create Print-Ready Photo Zines',
+  title: () => t('pageTitle'),
 });
 </script>
