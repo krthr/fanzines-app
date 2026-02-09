@@ -142,8 +142,10 @@ export function usePhotoStore() {
       return;
     }
     const next = [...arr];
-    const [item] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, item!);
+    // Swap the two elements in place
+    const temp = next[fromIndex]!;
+    next[fromIndex] = next[toIndex]!;
+    next[toIndex] = temp;
     photos.value = next;
   }
 
