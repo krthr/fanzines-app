@@ -1,4 +1,5 @@
 <template>
+  <VitePwaManifest />
   <NuxtRouteAnnouncer />
 
   <UApp :locale="uiLocale">

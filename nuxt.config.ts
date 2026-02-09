@@ -11,7 +11,42 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@nuxtjs/seo",
+    "@vite-pwa/nuxt",
   ],
+
+  pwa: {
+    registerType: "autoUpdate",
+    manifest: {
+      name: "Fanzine",
+      short_name: "Fanzine",
+      theme_color: "#ffffff",
+      icons: [
+        {
+          src: "pwa-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+        },
+        {
+          src: "pwa-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+        },
+      ],
+    },
+    workbox: {
+      navigateFallback: "/",
+      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+    },
+    client: {
+      installPrompt: true,
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\/$/],
+      type: "module",
+    },
+  },
 
   nitro: {
     prerender: {
