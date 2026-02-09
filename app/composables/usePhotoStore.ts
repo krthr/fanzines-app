@@ -1,30 +1,48 @@
 export interface PhotoItem {
-  file: File;
+  id: string;
   url: string;
 }
 
 const MAX_PHOTOS = 8;
 
-// Module-scoped state (client-only — blob URLs and File objects can't be SSR'd)
+// Module-scoped state (client-only)
 const photos = shallowRef<PhotoItem[]>([]);
 const gap = ref<number>(0);
+const isUploading = ref(false);
 
 export function usePhotoStore() {
-  function addPhotos(files: File[]): void {
+  async function addPhotos(files: File[]): Promise<void> {
     const remaining = MAX_PHOTOS - photos.value.length;
     const toAdd = files.slice(0, remaining);
-    const newItems = toAdd.map(file => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
-    photos.value = [...photos.value, ...newItems];
+
+    if (toAdd.length === 0) return;
+
+    isUploading.value = true;
+
+    try {
+      const formData = new FormData();
+      for (const file of toAdd) {
+        formData.append('file', file);
+      }
+
+      const response = await $fetch<{ photos: PhotoItem[] }>('/api/photos', {
+        method: 'POST',
+        body: formData,
+      });
+
+      photos.value = [...photos.value, ...response.photos];
+    }
+    finally {
+      isUploading.value = false;
+    }
   }
 
-  function removePhoto(index: number): void {
-    const removed = photos.value[index];
-    if (removed) {
-      URL.revokeObjectURL(removed.url);
-    }
+  async function removePhoto(index: number): Promise<void> {
+    const photo = photos.value[index];
+    if (!photo) return;
+
+    await $fetch(`/api/photos/${photo.id}`, { method: 'DELETE' });
+
     const arr = [...photos.value];
     arr.splice(index, 1);
     photos.value = arr;
@@ -46,10 +64,12 @@ export function usePhotoStore() {
     photos.value = next;
   }
 
-  function clear(): void {
-    for (const photo of photos.value) {
-      URL.revokeObjectURL(photo.url);
-    }
+  async function clear(): Promise<void> {
+    await Promise.all(
+      photos.value.map(photo =>
+        $fetch(`/api/photos/${photo.id}`, { method: 'DELETE' }).catch(() => {}),
+      ),
+    );
     photos.value = [];
   }
 
@@ -59,6 +79,7 @@ export function usePhotoStore() {
   return {
     photos,
     gap,
+    isUploading,
     addPhotos,
     removePhoto,
     reorder,

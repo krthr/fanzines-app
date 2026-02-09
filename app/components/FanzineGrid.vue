@@ -5,7 +5,7 @@
   >
     <div
       v-for="(photo, index) in photos"
-      :key="photo.url"
+      :key="photo.id"
       class="fanzine-cell relative overflow-hidden"
       :class="{
         'cursor-pointer': !readonly,

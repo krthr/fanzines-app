@@ -7,11 +7,19 @@
       icon="i-lucide-image"
       :label="uploadLabel"
       :description="`JPG, PNG, WebP or GIF. ${count}/${MAX_PHOTOS} photos uploaded.`"
-      :disabled="isFull"
+      :disabled="isFull || isUploading"
       :preview="false"
       class="min-h-48"
       @update:model-value="onFilesChanged"
     />
+
+    <div
+      v-if="isUploading"
+      class="flex items-center justify-center gap-2 py-4 text-sm text-muted"
+    >
+      <UIcon name="i-lucide-loader-circle" class="size-4 animate-spin" />
+      Uploading photos...
+    </div>
 
     <div
       v-if="photos.length"
@@ -19,7 +27,7 @@
     >
       <div
         v-for="(photo, index) in photos"
-        :key="photo.url"
+        :key="photo.id"
         class="relative group aspect-[3/4] rounded-lg overflow-hidden bg-elevated"
       >
         <img
@@ -43,29 +51,31 @@
 </template>
 
 <script setup lang="ts">
-const { photos, addPhotos, removePhoto, isFull, count, MAX_PHOTOS } = usePhotoStore();
+const { photos, addPhotos, removePhoto, isUploading, isFull, count, MAX_PHOTOS } = usePhotoStore();
 
 const files = ref<File[] | null>(null);
 
 const uploadLabel = computed(() => {
+  if (isUploading.value) {
+    return 'Uploading...';
+  }
   if (isFull.value) {
     return 'All photos uploaded';
   }
   return 'Drop your photos here or click to browse';
 });
 
-function onFilesChanged(value: File[] | null | undefined): void {
+async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
   if (!value || value.length === 0) {
     return;
   }
-  addPhotos(value);
-  // Reset the file input so the same files can be re-selected if needed
+  await addPhotos(value);
   nextTick(() => {
     files.value = null;
   });
 }
 
-function handleRemove(index: number): void {
-  removePhoto(index);
+async function handleRemove(index: number): Promise<void> {
+  await removePhoto(index);
 }
 </script>
