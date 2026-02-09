@@ -12,11 +12,4 @@
       "enabled": true,
     },
   },
-
-  "r2_buckets": [
-    {
-      "binding": "BLOB",
-      "bucket_name": "fanzines-app-assets",
-    },
-  ],
 }
