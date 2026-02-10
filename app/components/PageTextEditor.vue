@@ -107,7 +107,7 @@
         <button
           v-for="c in colors"
           :key="c.value"
-          class="size-6 rounded-full border-2 transition-all"
+          class="size-6 border-2"
           :class="[
             c.bg,
             modelValue.color === c.value
@@ -182,6 +182,6 @@ const sizes: {value: TextSize; label: string}[] = [
 const colors: {value: TextColor; label: string; bg: string}[] = [
   {value: 'white', label: 'White', bg: 'bg-white'},
   {value: 'black', label: 'Black', bg: 'bg-zinc-900'},
-  {value: 'rose', label: 'Rose', bg: 'bg-rose-500'},
+  {value: 'rose', label: 'Fuchsia', bg: 'bg-fuchsia-500'},
 ];
 </script>

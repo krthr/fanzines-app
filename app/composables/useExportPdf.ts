@@ -96,16 +96,16 @@ function getTextFillColor(color: TextColor): string {
   switch (color) {
     case 'white': return '#ffffff';
     case 'black': return '#18181b';
-    case 'rose': return '#f43f5e';
+    case 'rose': return '#8b1537';
   }
 }
 
 /** Map TextFont to the CSS font-family string used on the canvas */
 function getCanvasFontFamily(font: TextFont): string {
   switch (font) {
-    case 'sans': return "'Space Grotesk', sans-serif";
-    case 'serif': return "'Playfair Display', serif";
-    case 'mono': return "'JetBrains Mono', monospace";
+    case 'sans': return "'Special Elite', sans-serif";
+    case 'serif': return "'Libre Baskerville', serif";
+    case 'mono': return "'Courier Prime', monospace";
     case 'handwritten': return "'Caveat', cursive";
   }
 }

@@ -10,7 +10,7 @@
     <template #body>
       <div class="space-y-6">
         <!-- Step illustration -->
-        <div class="flex items-center justify-center bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-6 min-h-[180px]">
+        <div class="flex items-center justify-center bg-zinc-50 dark:bg-zinc-800/50 border-2 border-dashed border-black dark:border-white p-6 min-h-[180px]">
           <!-- Step 1: Flat sheet face-up -->
           <div v-if="currentStep === 0" class="tutorial-sheet">
             <div class="grid grid-cols-4 grid-rows-2 w-full h-full border-2 border-zinc-400 dark:border-zinc-500 rounded-sm">
@@ -122,7 +122,7 @@
           <button
             v-for="(_, i) in TOTAL_STEPS"
             :key="i"
-            class="size-2 rounded-full transition-colors"
+            class="size-2.5"
             :class="i === currentStep
               ? 'bg-primary'
               : i < currentStep

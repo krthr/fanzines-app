@@ -1,7 +1,7 @@
 <template>
-  <div class="mt-20 border-t border-zinc-200 dark:border-zinc-800 pt-10">
+  <div class="mt-20 border-t-4 border-dashed border-black dark:border-white pt-10">
     <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-4 tracking-tight">
+      <h2 class="text-3xl font-display mb-4 tracking-tight">
         {{ $t('whatIs.title') }}
       </h2>
       <p class="text-muted text-lg mb-8 leading-relaxed max-w-2xl mx-auto">
@@ -12,7 +12,7 @@
         <div
           v-for="i in 4"
           :key="i"
-          class="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 flex flex-col items-center justify-center gap-2 border border-zinc-100 dark:border-zinc-800"
+          class="feature-card bg-transparent border-2 border-black dark:border-white p-4 flex flex-col items-center justify-center gap-2"
         >
           <UIcon
             :name="getIcon(i - 1)"

@@ -5,9 +5,9 @@
   <UApp :locale="uiLocale">
     <UHeader title="Fanzine" to="/">
       <template #title>
-        <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-book-image" class="size-6 text-primary" />
-          <span class="text-lg font-bold tracking-tight">Fanzine</span>
+        <div class="flex items-center gap-2 -rotate-2">
+          <UIcon name="i-lucide-scissors" class="size-6 text-primary" />
+          <span class="text-2xl font-display uppercase tracking-wide">Fanzine</span>
         </div>
       </template>
 
@@ -32,7 +32,7 @@
 
     <UFooter>
       <template #left>
-        <p class="text-muted text-sm">
+        <p class="text-muted font-mono text-xs uppercase tracking-widest">
           {{ $t('app.tagline') }}
         </p>
       </template>
@@ -42,14 +42,14 @@
           href="https://www.instagram.com/wilson__tovar/"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-muted hover:text-highlighted flex items-center gap-1 text-xs transition-colors">
+          class="text-muted hover:text-highlighted flex items-center gap-1 font-mono text-xs uppercase tracking-wide">
           {{ $t('app.madeBy', {name: 'Wilson Tovar'}) }}
           <UIcon name="i-lucide-instagram" class="size-3.5" />
         </a>
       </template>
 
       <template #right>
-        <p class="text-muted text-xs">
+        <p class="text-muted font-mono text-xs uppercase tracking-wide">
           &copy; {{ new Date().getFullYear() }} {{ $t('app.copyright') }}
         </p>
       </template>

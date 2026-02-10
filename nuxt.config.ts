@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     manifest: {
       name: 'Fanzine',
       short_name: 'Fanzine',
-      theme_color: '#ffffff',
+      theme_color: '#F5F0E8',
       icons: [
         {
           src: 'pwa-192x192.png',
@@ -73,24 +73,29 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       {
-        name: 'Space Grotesk',
+        name: 'Special Elite',
         provider: 'google',
-        weights: [400, 500, 600, 700],
+        weights: [400],
       },
       {
-        name: 'Playfair Display',
+        name: 'Libre Baskerville',
         provider: 'google',
-        weights: [400, 600, 700],
+        weights: [400, 700],
       },
       {
-        name: 'JetBrains Mono',
+        name: 'Courier Prime',
         provider: 'google',
-        weights: [400, 500, 700],
+        weights: [400, 700],
       },
       {
         name: 'Caveat',
         provider: 'google',
         weights: [400, 500, 700],
+      },
+      {
+        name: 'Bebas Neue',
+        provider: 'google',
+        weights: [400],
       },
     ],
   },

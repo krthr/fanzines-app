@@ -45,6 +45,18 @@
       <span>{{ $t('uploader.privacyNotice') }}</span>
     </div>
 
+    <!-- Clear all -->
+    <div v-if="count > 0" class="flex justify-end">
+      <UButton
+        :label="$t('uploader.clearAll')"
+        icon="i-lucide-trash-2"
+        variant="ghost"
+        color="error"
+        size="xs"
+        @click="handleClear"
+      />
+    </div>
+
     <!-- Thumbnail grid -->
     <div
       v-if="photos.length"
@@ -54,7 +66,7 @@
       <div
         v-for="(photo, index) in photos"
         :key="photo.id"
-        class="photo-thumb relative group aspect-[3/4] rounded-lg overflow-hidden bg-elevated ring-1 ring-zinc-200 dark:ring-zinc-700"
+        class="photo-thumb relative group aspect-[3/4] overflow-hidden bg-elevated border-2 border-black dark:border-white"
       >
         <img
           :src="photo.url"
@@ -63,7 +75,7 @@
         >
         <button
           type="button"
-          class="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-500"
+          class="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white opacity-0 group-hover:opacity-100 cursor-pointer hover:bg-red-500"
           @click="handleRemove(index)"
         >
           <UIcon name="i-lucide-x" class="size-3.5" />
@@ -77,7 +89,7 @@
       <div
         v-for="n in emptySlots"
         :key="`empty-${n}`"
-        class="aspect-[3/4] rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 flex flex-col items-center justify-center gap-1"
+        class="aspect-[3/4] border-2 border-dashed border-black dark:border-white flex flex-col items-center justify-center gap-1"
       >
         <UIcon name="i-lucide-image-plus" class="size-5 text-zinc-300 dark:text-zinc-600" />
         <span class="text-xs text-zinc-400 dark:text-zinc-600">{{ count + n }}</span>
@@ -92,6 +104,7 @@ const {
   photos,
   addPhotos,
   removePhoto,
+  clear,
   isProcessing,
   isFull,
   count,
@@ -124,6 +137,14 @@ function handleRemove(index: number): void {
   removePhoto(index);
   toast.add({
     title: t('uploader.toastRemoved'),
+    color: 'neutral',
+  });
+}
+
+function handleClear(): void {
+  clear();
+  toast.add({
+    title: t('uploader.toastCleared'),
     color: 'neutral',
   });
 }

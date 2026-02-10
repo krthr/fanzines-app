@@ -3,37 +3,38 @@
     <div class="max-w-4xl mx-auto">
       <!-- Hero -->
       <div class="text-center mb-10">
-        <div
-          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+        <div class="stamp text-primary mb-4">
           <UIcon name="i-lucide-sparkles" class="size-4" />
-          <span>{{ $t('hero.badge') }}</span>
+          <span>{{ $t("hero.badge") }}</span>
         </div>
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
-          {{ $t('hero.titleStart') }}
-          <span class="text-primary">{{ $t('hero.titleHighlight') }}</span>
+        <h1 class="text-4xl sm:text-5xl font-display tracking-tight mb-3">
+          {{ $t("hero.titleStart") }}
+          <span class="text-primary">{{ $t("hero.titleHighlight") }}</span>
         </h1>
         <p class="text-muted text-lg max-w-xl mx-auto">
-          {{ $t('hero.description') }}
+          {{ $t("hero.description") }}
         </p>
       </div>
 
       <!-- Progress indicator -->
       <div class="flex items-center justify-center gap-3 mb-8">
         <div
-          class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+          class="flex items-center gap-2 px-3 py-1.5 border-2 text-sm font-mono uppercase tracking-wide"
           :class="
             count === MAX_PHOTOS
-              ? 'bg-primary/15 text-primary'
-              : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-          ">
+              ? 'border-primary text-primary'
+              : 'border-zinc-400 text-zinc-600 dark:border-zinc-600 dark:text-zinc-400'
+          "
+        >
           <UIcon
             :name="
               count === MAX_PHOTOS
                 ? 'i-lucide-check-circle'
                 : 'i-lucide-image-plus'
             "
-            class="size-4" />
-          <span>{{ $t('progress.photos', {count, max: MAX_PHOTOS}) }}</span>
+            class="size-4"
+          />
+          <span>{{ $t("progress.photos", { count, max: MAX_PHOTOS }) }}</span>
         </div>
       </div>
 
@@ -41,12 +42,12 @@
       <UStepper ref="stepper" :items="steps" disabled class="w-full">
         <template #upload>
           <div class="mt-6">
-            <UCard>
+            <UCard class="tape-strip">
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-image" class="size-5 text-primary" />
                   <h2 class="text-lg font-semibold">
-                    {{ $t('uploadCard.title') }}
+                    {{ $t("uploadCard.title") }}
                   </h2>
                 </div>
               </template>
@@ -58,29 +59,32 @@
 
         <template #arrange>
           <div class="mt-6 space-y-6">
-            <UCard>
+            <UCard class="tape-strip">
               <template #header>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <UIcon
                       name="i-lucide-layout-grid"
-                      class="size-5 text-primary" />
+                      class="size-5 text-primary"
+                    />
                     <h2 class="text-lg font-semibold">
-                      {{ $t('arrangeCard.title') }}
+                      {{ $t("arrangeCard.title") }}
                     </h2>
                   </div>
                   <div class="flex items-center gap-3">
                     <label class="text-sm font-medium text-muted shrink-0">
-                      {{ $t('arrangeCard.gapLabel') }}
+                      {{ $t("arrangeCard.gapLabel") }}
                     </label>
                     <USlider
                       v-model="draftGap"
                       :min="0"
                       :max="16"
                       :step="1"
-                      class="w-32" />
+                      class="w-32"
+                    />
                     <span
-                      class="text-xs text-muted tabular-nums w-10 text-right">
+                      class="text-xs text-muted tabular-nums w-10 text-right"
+                    >
                       {{ draftGap }}px
                     </span>
                     <UButton
@@ -89,7 +93,8 @@
                       size="xs"
                       variant="soft"
                       :disabled="draftGap === gap"
-                      @click="applyGap" />
+                      @click="applyGap"
+                    />
                   </div>
                 </div>
               </template>
@@ -97,28 +102,33 @@
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <p class="text-sm text-muted">
-                    {{ gridMode === 'text'
-                      ? $t('arrangeCard.textHint')
-                      : $t('arrangeCard.swapHint')
+                    {{
+                      gridMode === "text"
+                        ? $t("arrangeCard.textHint")
+                        : $t("arrangeCard.swapHint")
                     }}
                   </p>
                   <div class="flex items-center gap-2 shrink-0 ml-4">
                     <!-- Mode toggle -->
-                    <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                    <div
+                      class="flex items-center gap-0.5 p-0.5 border-2 border-zinc-400 dark:border-zinc-600"
+                    >
                       <UButton
                         :label="$t('arrangeCard.modeReorder')"
                         icon="i-lucide-move"
                         size="xs"
                         :variant="gridMode === 'reorder' ? 'soft' : 'ghost'"
                         :color="gridMode === 'reorder' ? 'primary' : 'neutral'"
-                        @click="gridMode = 'reorder'" />
+                        @click="gridMode = 'reorder'"
+                      />
                       <UButton
                         :label="$t('arrangeCard.modeText')"
                         icon="i-lucide-type"
                         size="xs"
                         :variant="gridMode === 'text' ? 'soft' : 'ghost'"
                         :color="gridMode === 'text' ? 'primary' : 'neutral'"
-                        @click="gridMode = 'text'" />
+                        @click="gridMode = 'text'"
+                      />
                     </div>
                     <UButton
                       :label="$t('guides.showLabels')"
@@ -126,18 +136,20 @@
                       size="xs"
                       :variant="showLabels ? 'soft' : 'ghost'"
                       :color="showLabels ? 'primary' : 'neutral'"
-                      @click="showLabels = !showLabels" />
+                      @click="showLabels = !showLabels"
+                    />
                     <UButton
                       :label="$t('guides.showGuides')"
                       icon="i-lucide-scissors"
                       size="xs"
                       :variant="showGuides ? 'soft' : 'ghost'"
                       :color="showGuides ? 'primary' : 'neutral'"
-                      @click="showGuides = !showGuides" />
+                      @click="showGuides = !showGuides"
+                    />
                   </div>
                 </div>
 
-                <div class="rounded-lg overflow-hidden paper-shadow">
+                <div class="overflow-hidden paper-shadow">
                   <FanzineGrid
                     :photos="photos"
                     :page-texts="pageTexts"
@@ -146,7 +158,10 @@
                     :show-labels="showLabels"
                     :show-guides="showGuides"
                     @reorder="reorder"
-                    @update:page-text="(index, value) => updatePageText(index, value)" />
+                    @update:page-text="
+                      (index, value) => updatePageText(index, value)
+                    "
+                  />
                 </div>
               </div>
             </UCard>
@@ -155,12 +170,12 @@
 
         <template #export>
           <div class="mt-6">
-            <UCard>
+            <UCard class="tape-strip">
               <template #header>
                 <div class="flex items-center gap-2">
                   <UIcon name="i-lucide-download" class="size-5 text-primary" />
                   <h2 class="text-lg font-semibold">
-                    {{ $t('exportCard.title') }}
+                    {{ $t("exportCard.title") }}
                   </h2>
                 </div>
               </template>
@@ -180,7 +195,8 @@
           color="neutral"
           size="lg"
           :disabled="!stepper?.hasPrev"
-          @click="stepper?.prev()" />
+          @click="stepper?.prev()"
+        />
 
         <UButton
           v-if="stepper?.hasNext"
@@ -188,7 +204,8 @@
           trailing-icon="i-lucide-arrow-right"
           size="lg"
           :disabled="!canProceed"
-          @click="stepper?.next()" />
+          @click="stepper?.next()"
+        />
       </div>
 
       <!-- What is a Fanzine? -->
@@ -198,10 +215,11 @@
 </template>
 
 <script setup lang="ts">
-import type {StepperItem} from '@nuxt/ui';
+import type { StepperItem } from "@nuxt/ui";
 
-const {t} = useI18n();
-const {photos, gap, pageTexts, reorder, updatePageText, count, MAX_PHOTOS} = usePhotoStore();
+const { t } = useI18n();
+const { photos, gap, pageTexts, reorder, updatePageText, count, MAX_PHOTOS } =
+  usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.
 // Only committed to the store (and grid) when user clicks "Apply".
@@ -212,7 +230,7 @@ const showLabels = ref(false);
 const showGuides = ref(false);
 
 // Grid interaction mode: reorder (click-to-swap) or text (click-to-edit)
-const gridMode = ref<'reorder' | 'text'>('reorder');
+const gridMode = ref<"reorder" | "text">("reorder");
 
 function applyGap(): void {
   gap.value = draftGap.value;
@@ -220,26 +238,26 @@ function applyGap(): void {
 
 const steps = computed<StepperItem[]>(() => [
   {
-    slot: 'upload' as const,
-    title: t('steps.upload.title'),
-    description: t('steps.upload.description'),
-    icon: 'i-lucide-image',
+    slot: "upload" as const,
+    title: t("steps.upload.title"),
+    description: t("steps.upload.description"),
+    icon: "i-lucide-image",
   },
   {
-    slot: 'arrange' as const,
-    title: t('steps.arrange.title'),
-    description: t('steps.arrange.description'),
-    icon: 'i-lucide-layout-grid',
+    slot: "arrange" as const,
+    title: t("steps.arrange.title"),
+    description: t("steps.arrange.description"),
+    icon: "i-lucide-layout-grid",
   },
   {
-    slot: 'export' as const,
-    title: t('steps.export.title'),
-    description: t('steps.export.description'),
-    icon: 'i-lucide-download',
+    slot: "export" as const,
+    title: t("steps.export.title"),
+    description: t("steps.export.description"),
+    icon: "i-lucide-download",
   },
 ]);
 
-const stepper = useTemplateRef('stepper');
+const stepper = useTemplateRef("stepper");
 
 const canProceed = computed(() => {
   if (!stepper.value?.hasNext) return false;
@@ -248,13 +266,13 @@ const canProceed = computed(() => {
 });
 
 useSeoMeta({
-  title: () => t('pageTitle'),
-  description: () => t('hero.description'),
-  ogTitle: () => t('pageTitle'),
-  ogDescription: () => t('hero.description'),
-  ogType: 'website',
-  twitterCard: 'summary_large_image',
-  twitterTitle: () => t('pageTitle'),
-  twitterDescription: () => t('hero.description'),
+  title: () => t("pageTitle"),
+  description: () => t("hero.description"),
+  ogTitle: () => t("pageTitle"),
+  ogDescription: () => t("hero.description"),
+  ogType: "website",
+  twitterCard: "summary_large_image",
+  twitterTitle: () => t("pageTitle"),
+  twitterDescription: () => t("hero.description"),
 });
 </script>

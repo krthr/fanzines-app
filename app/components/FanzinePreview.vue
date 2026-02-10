@@ -12,7 +12,7 @@
           <p class="text-sm text-muted">
             {{ $t('preview.printDescription') }}
           </p>
-          <div class="rounded-lg overflow-hidden paper-shadow">
+          <div class="overflow-hidden paper-shadow">
             <FanzineGrid
               :photos="photos"
               :page-texts="pageTexts"
@@ -42,7 +42,7 @@
           :label="$t('preview.download')"
           icon="i-lucide-download"
           size="xl"
-          class="flex-1"
+          class="flex-1 uppercase font-display tracking-wider"
           :loading="isExporting"
           @click="handleExport"
         />

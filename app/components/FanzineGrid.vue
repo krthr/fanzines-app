@@ -268,7 +268,7 @@ function textColorClass(color: TextColor): string {
   switch (color) {
     case 'white': return 'text-white';
     case 'black': return 'text-zinc-900';
-    case 'rose': return 'text-rose-500';
+    case 'rose': return 'text-fuchsia-500';
   }
 }
 
@@ -313,7 +313,7 @@ function textBgClass(color: TextColor, position: TextPosition): string {
 }
 
 .fanzine-cell {
-  transition: filter 0.2s ease;
+  transition: none;
 }
 
 .fold-guides {

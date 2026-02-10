@@ -3,7 +3,7 @@
     <!-- Spread viewer -->
     <div class="relative">
       <!-- Two-page spread -->
-      <div class="booklet-spread rounded-lg overflow-hidden paper-shadow bg-white dark:bg-zinc-900">
+      <div class="booklet-spread overflow-hidden paper-shadow bg-white dark:bg-zinc-900">
         <div
           v-if="currentSpread"
           class="grid grid-cols-2 h-full"
@@ -74,7 +74,7 @@
 
       <!-- Navigation arrows (overlaid on spread) -->
       <button
-        class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white hover:bg-black/60 disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="currentIndex === 0"
         :aria-label="$t('booklet.prev')"
         @click="currentIndex--"
@@ -82,7 +82,7 @@
         <UIcon name="i-lucide-chevron-left" class="size-5" />
       </button>
       <button
-        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/40 text-white hover:bg-black/60 disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="currentIndex === spreads.length - 1"
         :aria-label="$t('booklet.next')"
         @click="currentIndex++"
@@ -97,7 +97,7 @@
         <button
           v-for="(_, i) in spreads"
           :key="i"
-          class="size-2 rounded-full transition-colors"
+          class="size-2.5"
           :class="i === currentIndex
             ? 'bg-primary'
             : 'bg-zinc-300 dark:bg-zinc-600 hover:bg-zinc-400 dark:hover:bg-zinc-500'"
@@ -192,7 +192,7 @@ function bookletTextColor(color: TextColor): string {
   switch (color) {
     case 'white': return 'text-white';
     case 'black': return 'text-zinc-900';
-    case 'rose': return 'text-rose-500';
+    case 'rose': return 'text-fuchsia-500';
   }
 }
 
