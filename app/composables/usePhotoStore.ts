@@ -1,11 +1,4 @@
 import { processImages } from '~/composables/useImageProcessor';
-import {
-  savePhoto,
-  deletePhoto,
-  saveMeta,
-  loadSession,
-  clearAll,
-} from '~/utils/storage';
 
 export interface PhotoItem {
   id: string;
@@ -40,80 +33,7 @@ const gap = ref<number>(0);
 const pageTexts = ref<PageText[][]>(createDefaultPageTexts());
 const isProcessing = ref(false);
 
-// --- Persistence helpers ---
-
-let restored = false;
-
-async function fetchBlob(url: string): Promise<Blob> {
-  const res = await fetch(url);
-  return res.blob();
-}
-
-function persistPhotos(): void {
-  const items = photos.value;
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!;
-    fetchBlob(item.url).then(blob => savePhoto(item.id, blob, i));
-  }
-}
-
-function persistMeta(): void {
-  saveMeta(gap.value, pageTexts.value);
-}
-
-async function restoreSession(): Promise<void> {
-  try {
-    const session = await loadSession();
-
-    if (session.photos.length > 0) {
-      photos.value = session.photos.map(p => ({
-        id: p.id,
-        url: URL.createObjectURL(p.blob),
-      }));
-    }
-
-    if (session.meta) {
-      gap.value = session.meta.gap;
-      const raw = session.meta.pageTexts as unknown[];
-
-      // Migration: detect old format (flat array of objects with `position` key)
-      if (raw.length > 0 && raw[0] && typeof raw[0] === 'object' && !Array.isArray(raw[0]) && 'position' in (raw[0] as Record<string, unknown>)) {
-        const posMap: Record<string, number> = { top: 10, center: 50, bottom: 90 };
-        pageTexts.value = (raw as Record<string, unknown>[]).map((old) => {
-          if (!old.content) return [];
-          return [{
-            id: crypto.randomUUID(),
-            content: (old.content as string) || '',
-            x: 50,
-            y: posMap[(old.position as string) || 'bottom'] ?? 90,
-            size: (old.size as TextSize) || 'md',
-            color: (old.color as TextColor) || 'white',
-            font: (old.font as TextFont) || 'sans',
-            showBg: old.showBg !== false,
-          }];
-        });
-        // Pad to 8 if needed
-        while (pageTexts.value.length < MAX_PHOTOS) {
-          pageTexts.value.push([]);
-        }
-        persistMeta();
-      } else {
-        pageTexts.value = raw as PageText[][];
-      }
-    }
-  } catch {
-    // IndexedDB unavailable or corrupt — start fresh
-  }
-}
-
 export function usePhotoStore() {
-  if (!restored) {
-    restored = true;
-    restoreSession();
-
-    // Watch gap for changes and persist
-    watch(gap, () => persistMeta());
-  }
 
   /**
    * Adds local photos from a file picker / drag-and-drop.
@@ -135,10 +55,6 @@ export function usePhotoStore() {
       }));
 
       photos.value = [...photos.value, ...newItems];
-
-      // Persist all photos (re-save with correct order indices)
-      persistPhotos();
-      persistMeta();
     } finally {
       isProcessing.value = false;
     }
@@ -153,11 +69,6 @@ export function usePhotoStore() {
     const arr = [...photos.value];
     arr.splice(index, 1);
     photos.value = arr;
-
-    // Remove from IndexedDB and re-save remaining orders
-    deletePhoto(photo.id);
-    persistPhotos();
-    persistMeta();
   }
 
   function reorder(fromIndex: number, toIndex: number): void {
@@ -182,9 +93,6 @@ export function usePhotoStore() {
     texts[fromIndex] = texts[toIndex]!;
     texts[toIndex] = tmpText;
     pageTexts.value = texts;
-
-    persistPhotos();
-    persistMeta();
   }
 
   function clear(): void {
@@ -193,8 +101,6 @@ export function usePhotoStore() {
     }
     photos.value = [];
     pageTexts.value = createDefaultPageTexts();
-
-    clearAll();
   }
 
   function addPageText(pageIndex: number): PageText | null {
@@ -216,7 +122,6 @@ export function usePhotoStore() {
     pageArr.push(newText);
     texts[pageIndex] = pageArr;
     pageTexts.value = texts;
-    persistMeta();
     return newText;
   }
 
@@ -226,10 +131,9 @@ export function usePhotoStore() {
     const pageArr = (texts[pageIndex] || []).filter(t => t.id !== textId);
     texts[pageIndex] = pageArr;
     pageTexts.value = texts;
-    persistMeta();
   }
 
-  function updatePageText(pageIndex: number, textId: string, updates: Partial<PageText>, skipPersist?: boolean): void {
+  function updatePageText(pageIndex: number, textId: string, updates: Partial<PageText>): void {
     if (pageIndex < 0 || pageIndex >= MAX_PHOTOS) return;
     const texts = [...pageTexts.value];
     const pageArr = [...(texts[pageIndex] || [])];
@@ -238,10 +142,6 @@ export function usePhotoStore() {
     pageArr[idx] = { ...pageArr[idx]!, ...updates };
     texts[pageIndex] = pageArr;
     pageTexts.value = texts;
-
-    if (!skipPersist) {
-      persistMeta();
-    }
   }
 
   const isFull = computed(() => photos.value.length >= MAX_PHOTOS);
@@ -259,7 +159,6 @@ export function usePhotoStore() {
     addPageText,
     removePageText,
     updatePageText,
-    persistMeta,
     isFull,
     count,
     MAX_PHOTOS,
