@@ -106,14 +106,13 @@ export function useFanzineLayout() {
   /**
    * Return page texts reordered into booklet reading order.
    *
-   * Input: pageTexts array where index = grid position.
+   * Input: pageTexts array where index = grid position (each entry is an array of texts).
    * Output: pageTexts array where index = reading order position.
    */
-  function getReadingOrderTexts(pageTexts: PageText[]): PageText[] {
+  function getReadingOrderTexts(pageTexts: PageText[][]): PageText[][] {
     const sorted = [...LAYOUT].sort((a, b) => a.readingOrder - b.readingOrder);
     return sorted
-      .map(slot => pageTexts[slot.gridIndex])
-      .filter((t): t is PageText => t !== undefined);
+      .map(slot => pageTexts[slot.gridIndex] ?? []);
   }
 
   /**

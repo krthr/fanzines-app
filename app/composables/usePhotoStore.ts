@@ -12,14 +12,15 @@ export interface PhotoItem {
   url: string;
 }
 
-export type TextPosition = 'top' | 'center' | 'bottom';
 export type TextSize = 'sm' | 'md' | 'lg';
 export type TextColor = 'white' | 'black' | 'rose';
 export type TextFont = 'sans' | 'serif' | 'mono' | 'handwritten';
 
 export interface PageText {
+  id: string;
   content: string;
-  position: TextPosition;
+  x: number;
+  y: number;
   size: TextSize;
   color: TextColor;
   font: TextFont;
@@ -27,19 +28,16 @@ export interface PageText {
 }
 
 const MAX_PHOTOS = 8;
+const MAX_TEXTS_PER_PAGE = 3;
 
-function createDefaultPageText(): PageText {
-  return { content: '', position: 'bottom', size: 'md', color: 'white', font: 'sans', showBg: true };
-}
-
-function createDefaultPageTexts(): PageText[] {
-  return Array.from({ length: MAX_PHOTOS }, () => createDefaultPageText());
+function createDefaultPageTexts(): PageText[][] {
+  return Array.from({ length: MAX_PHOTOS }, () => []);
 }
 
 // Module-scoped state (client-only, never leaves the browser)
 const photos = shallowRef<PhotoItem[]>([]);
 const gap = ref<number>(0);
-const pageTexts = ref<PageText[]>(createDefaultPageTexts());
+const pageTexts = ref<PageText[][]>(createDefaultPageTexts());
 const isProcessing = ref(false);
 
 // --- Persistence helpers ---
@@ -76,7 +74,32 @@ async function restoreSession(): Promise<void> {
 
     if (session.meta) {
       gap.value = session.meta.gap;
-      pageTexts.value = session.meta.pageTexts as PageText[];
+      const raw = session.meta.pageTexts as unknown[];
+
+      // Migration: detect old format (flat array of objects with `position` key)
+      if (raw.length > 0 && raw[0] && typeof raw[0] === 'object' && !Array.isArray(raw[0]) && 'position' in (raw[0] as Record<string, unknown>)) {
+        const posMap: Record<string, number> = { top: 10, center: 50, bottom: 90 };
+        pageTexts.value = (raw as Record<string, unknown>[]).map((old) => {
+          if (!old.content) return [];
+          return [{
+            id: crypto.randomUUID(),
+            content: (old.content as string) || '',
+            x: 50,
+            y: posMap[(old.position as string) || 'bottom'] ?? 90,
+            size: (old.size as TextSize) || 'md',
+            color: (old.color as TextColor) || 'white',
+            font: (old.font as TextFont) || 'sans',
+            showBg: old.showBg !== false,
+          }];
+        });
+        // Pad to 8 if needed
+        while (pageTexts.value.length < MAX_PHOTOS) {
+          pageTexts.value.push([]);
+        }
+        persistMeta();
+      } else {
+        pageTexts.value = raw as PageText[][];
+      }
     }
   } catch {
     // IndexedDB unavailable or corrupt — start fresh
@@ -153,7 +176,7 @@ export function usePhotoStore() {
     next[toIndex] = temp;
     photos.value = next;
 
-    // Swap corresponding page texts
+    // Swap corresponding page text arrays
     const texts = [...pageTexts.value];
     const tmpText = texts[fromIndex]!;
     texts[fromIndex] = texts[toIndex]!;
@@ -174,13 +197,51 @@ export function usePhotoStore() {
     clearAll();
   }
 
-  function updatePageText(index: number, updates: Partial<PageText>): void {
-    if (index < 0 || index >= MAX_PHOTOS) return;
+  function addPageText(pageIndex: number): PageText | null {
+    if (pageIndex < 0 || pageIndex >= MAX_PHOTOS) return null;
     const texts = [...pageTexts.value];
-    texts[index] = { ...texts[index]!, ...updates };
+    const pageArr = [...(texts[pageIndex] || [])];
+    if (pageArr.length >= MAX_TEXTS_PER_PAGE) return null;
+
+    const newText: PageText = {
+      id: crypto.randomUUID(),
+      content: '',
+      x: 50,
+      y: 50,
+      size: 'md',
+      color: 'white',
+      font: 'sans',
+      showBg: true,
+    };
+    pageArr.push(newText);
+    texts[pageIndex] = pageArr;
+    pageTexts.value = texts;
+    persistMeta();
+    return newText;
+  }
+
+  function removePageText(pageIndex: number, textId: string): void {
+    if (pageIndex < 0 || pageIndex >= MAX_PHOTOS) return;
+    const texts = [...pageTexts.value];
+    const pageArr = (texts[pageIndex] || []).filter(t => t.id !== textId);
+    texts[pageIndex] = pageArr;
+    pageTexts.value = texts;
+    persistMeta();
+  }
+
+  function updatePageText(pageIndex: number, textId: string, updates: Partial<PageText>, skipPersist?: boolean): void {
+    if (pageIndex < 0 || pageIndex >= MAX_PHOTOS) return;
+    const texts = [...pageTexts.value];
+    const pageArr = [...(texts[pageIndex] || [])];
+    const idx = pageArr.findIndex(t => t.id === textId);
+    if (idx === -1) return;
+    pageArr[idx] = { ...pageArr[idx]!, ...updates };
+    texts[pageIndex] = pageArr;
     pageTexts.value = texts;
 
-    persistMeta();
+    if (!skipPersist) {
+      persistMeta();
+    }
   }
 
   const isFull = computed(() => photos.value.length >= MAX_PHOTOS);
@@ -195,9 +256,13 @@ export function usePhotoStore() {
     removePhoto,
     reorder,
     clear,
+    addPageText,
+    removePageText,
     updatePageText,
+    persistMeta,
     isFull,
     count,
     MAX_PHOTOS,
+    MAX_TEXTS_PER_PAGE,
   };
 }

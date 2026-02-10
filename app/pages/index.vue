@@ -158,9 +158,9 @@
                     :show-labels="showLabels"
                     :show-guides="showGuides"
                     @reorder="reorder"
-                    @update:page-text="
-                      (index, value) => updatePageText(index, value)
-                    "
+                    @update:page-text="onUpdatePageText"
+                    @add:page-text="onAddPageText"
+                    @remove:page-text="removePageText"
                   />
                 </div>
               </div>
@@ -218,7 +218,7 @@
 import type { StepperItem } from "@nuxt/ui";
 
 const { t } = useI18n();
-const { photos, gap, pageTexts, reorder, updatePageText, count, MAX_PHOTOS } =
+const { photos, gap, pageTexts, reorder, addPageText, removePageText, updatePageText, persistMeta, count, MAX_PHOTOS } =
   usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.
@@ -235,6 +235,21 @@ const gridMode = ref<"reorder" | "text">("reorder");
 function applyGap(): void {
   gap.value = draftGap.value;
 }
+
+function onUpdatePageText(pageIndex: number, textId: string, updates: Partial<import('~/composables/usePhotoStore').PageText>): void {
+  if (Object.keys(updates).length === 0) {
+    // Empty updates = drag end signal, just persist
+    persistMeta();
+    return;
+  }
+  const hasDragFields = 'x' in updates || 'y' in updates;
+  updatePageText(pageIndex, textId, updates, hasDragFields);
+}
+
+function onAddPageText(pageIndex: number): void {
+  addPageText(pageIndex);
+}
+
 
 const steps = computed<StepperItem[]>(() => [
   {
