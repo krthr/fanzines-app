@@ -53,7 +53,8 @@
     "dropHint": "Drop your photos here or click to browse",
     "fileTypes": "JPG, PNG, WebP or GIF. {count}/{max} photos selected.",
     "privacyNotice": "Your photos stay on your device and are never sent to any server.",
-    "toastRemoved": "Photo removed"
+    "toastRemoved": "Photo removed",
+    "processing": "Optimizing photos…"
   },
   "layout": {
     "frontCover": "Front Cover",

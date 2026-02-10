@@ -53,7 +53,8 @@
     "dropHint": "Arrastra tus fotos aquí o haz clic para buscar",
     "fileTypes": "JPG, PNG, WebP o GIF. {count}/{max} fotos seleccionadas.",
     "privacyNotice": "Tus fotos permanecen en tu dispositivo y nunca se envían a ningún servidor.",
-    "toastRemoved": "Foto eliminada"
+    "toastRemoved": "Foto eliminada",
+    "processing": "Optimizando fotos…"
   },
   "layout": {
     "frontCover": "Portada",

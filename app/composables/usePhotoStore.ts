@@ -1,3 +1,5 @@
+import { processImages } from '~/composables/useImageProcessor';
+
 export interface PhotoItem {
   id: string;
   url: string;
@@ -28,24 +30,32 @@ function createDefaultPageTexts(): PageText[] {
 const photos = shallowRef<PhotoItem[]>([]);
 const gap = ref<number>(0);
 const pageTexts = ref<PageText[]>(createDefaultPageTexts());
+const isProcessing = ref(false);
 
 export function usePhotoStore() {
   /**
    * Adds local photos from a file picker / drag-and-drop.
-   * Creates in-memory blob URLs -- nothing is sent to a server.
+   * Images are resized and compressed before being stored so that
+   * large originals (10–20 MB) don't bloat browser memory.
    */
-  function addPhotos(files: File[]): void {
+  async function addPhotos(files: File[]): Promise<void> {
     const remaining = MAX_PHOTOS - photos.value.length;
     const toAdd = files.slice(0, remaining);
 
     if (toAdd.length === 0) return;
 
-    const newItems: PhotoItem[] = toAdd.map((file) => ({
-      id: crypto.randomUUID(),
-      url: URL.createObjectURL(file),
-    }));
+    isProcessing.value = true;
+    try {
+      const blobs = await processImages(toAdd);
+      const newItems: PhotoItem[] = blobs.map((blob) => ({
+        id: crypto.randomUUID(),
+        url: URL.createObjectURL(blob),
+      }));
 
-    photos.value = [...photos.value, ...newItems];
+      photos.value = [...photos.value, ...newItems];
+    } finally {
+      isProcessing.value = false;
+    }
   }
 
   function removePhoto(index: number): void {
@@ -105,6 +115,7 @@ export function usePhotoStore() {
     photos,
     gap,
     pageTexts,
+    isProcessing,
     addPhotos,
     removePhoto,
     reorder,

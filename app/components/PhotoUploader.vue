@@ -15,8 +15,18 @@
       />
     </div>
 
+    <!-- Processing indicator -->
+    <div
+      v-if="isProcessing"
+      class="flex items-center justify-center gap-2 py-8 text-sm text-muted"
+    >
+      <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-primary" />
+      <span>{{ $t('uploader.processing') }}</span>
+    </div>
+
     <!-- Drop zone -->
     <UFileUpload
+      v-if="!isProcessing"
       v-model="files"
       multiple
       accept="image/*"
@@ -82,6 +92,7 @@ const {
   photos,
   addPhotos,
   removePhoto,
+  isProcessing,
   isFull,
   count,
   MAX_PHOTOS,
@@ -99,10 +110,10 @@ const pickerLabel = computed(() => {
   return t('uploader.dropHint');
 });
 
-function onFilesChanged(value: File[] | null | undefined): void {
+async function onFilesChanged(value: File[] | null | undefined): Promise<void> {
   if (!value || value.length === 0) return;
 
-  addPhotos(value);
+  await addPhotos(value);
 
   nextTick(() => {
     files.value = null;
