@@ -1,4 +1,5 @@
 import type { PhotoItem } from '~/composables/usePhotoStore';
+import type { PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
 import type { PageSlot } from '~/composables/useFanzineLayout';
 
 // A4 landscape at 300 DPI
@@ -81,6 +82,98 @@ function drawCell(
   }
 }
 
+/** Map TextSize to font size in print pixels (at 300 DPI) */
+function getTextFontSize(size: TextSize): number {
+  switch (size) {
+    case 'sm': return 24;
+    case 'md': return 36;
+    case 'lg': return 48;
+  }
+}
+
+/** Map TextColor to CSS-style color string */
+function getTextFillColor(color: TextColor): string {
+  switch (color) {
+    case 'white': return '#ffffff';
+    case 'black': return '#18181b';
+    case 'rose': return '#f43f5e';
+  }
+}
+
+/**
+ * Draw a text overlay on a cell in the canvas.
+ * Handles gradient background, centering, and rotation for top-row cells.
+ */
+function drawTextOverlay(
+  ctx: CanvasRenderingContext2D,
+  pageText: PageText,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rotated: boolean,
+): void {
+  if (!pageText.content) return;
+
+  const fontSize = getTextFontSize(pageText.size);
+  const padding = fontSize * 0.6;
+  const barHeight = fontSize + padding * 2;
+
+  ctx.save();
+
+  if (rotated) {
+    // For rotated cells, we need to rotate the entire overlay 180 degrees
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate(Math.PI);
+    ctx.translate(-(x + w / 2), -(y + h / 2));
+  }
+
+  // Determine bar position
+  const barY = pageText.position === 'top' ? y : y + h - barHeight;
+
+  // Draw gradient background
+  const isLightText = pageText.color !== 'black';
+  if (pageText.position === 'top') {
+    const gradient = ctx.createLinearGradient(x, barY, x, barY + barHeight * 1.5);
+    if (isLightText) {
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    }
+    else {
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    }
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, barY, w, barHeight * 1.5);
+  }
+  else {
+    const gradient = ctx.createLinearGradient(x, barY + barHeight, x, barY - barHeight * 0.5);
+    if (isLightText) {
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    }
+    else {
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    }
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, barY - barHeight * 0.5, w, barHeight * 1.5);
+  }
+
+  // Draw text
+  ctx.font = `${fontSize >= 48 ? 'bold' : fontSize >= 36 ? '600' : 'normal'} ${fontSize}px sans-serif`;
+  ctx.fillStyle = getTextFillColor(pageText.color);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const textX = x + w / 2;
+  const textY = barY + barHeight / 2;
+
+  ctx.fillText(pageText.content, textX, textY, w - padding * 2);
+
+  ctx.restore();
+}
+
 export function useExportPdf() {
   const isExporting = ref(false);
   const { LAYOUT } = useFanzineLayout();
@@ -88,9 +181,9 @@ export function useExportPdf() {
   async function exportToPdf(
     photos: PhotoItem[],
     gap: number,
-    options: { showGuides?: boolean; filename?: string } = {},
+    options: { showGuides?: boolean; filename?: string; pageTexts?: PageText[] } = {},
   ): Promise<void> {
-    const { showGuides = true, filename = 'fanzine.pdf' } = options;
+    const { showGuides = true, filename = 'fanzine.pdf', pageTexts } = options;
     if (photos.length === 0) return;
 
     isExporting.value = true;
@@ -129,6 +222,20 @@ export function useExportPdf() {
         const rotated = slot?.rotated ?? false;
 
         drawCell(ctx, images[i]!, x, y, cellW, cellH, rotated);
+      }
+
+      // Draw text overlays on the canvas (before converting to PDF image)
+      if (pageTexts) {
+        for (let i = 0; i < Math.min(pageTexts.length, images.length); i++) {
+          const col = i % COLS;
+          const row = Math.floor(i / COLS);
+          const x = col * (cellW + gapPx);
+          const y = row * (cellH + gapPx);
+          const slot = LAYOUT[i] as PageSlot | undefined;
+          const rotated = slot?.rotated ?? false;
+
+          drawTextOverlay(ctx, pageTexts[i]!, x, y, cellW, cellH, rotated);
+        }
       }
 
       // Generate PDF

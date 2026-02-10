@@ -15,6 +15,7 @@
           <div class="rounded-lg overflow-hidden paper-shadow">
             <FanzineGrid
               :photos="photos"
+              :page-texts="pageTexts"
               :gap="gap"
               readonly
               show-labels
@@ -29,7 +30,7 @@
           <p class="text-sm text-muted">
             {{ $t('preview.bookletDescription') }}
           </p>
-          <BookletPreview :photos="photos" />
+          <BookletPreview :photos="photos" :page-texts="pageTexts" />
         </div>
       </template>
     </UTabs>
@@ -75,7 +76,7 @@ import type { TabsItem } from '@nuxt/ui';
 
 const { t } = useI18n();
 const { $posthog } = useNuxtApp();
-const { photos, gap } = usePhotoStore();
+const { photos, gap, pageTexts } = usePhotoStore();
 const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
 
@@ -103,7 +104,10 @@ async function handleExport(): Promise<void> {
   };
 
   try {
-    await exportToPdf(photos.value, gap.value, { showGuides: pdfGuides.value });
+    await exportToPdf(photos.value, gap.value, {
+      showGuides: pdfGuides.value,
+      pageTexts: pageTexts.value,
+    });
     $posthog()?.capture('fanzine_exported', eventProps);
     toast.add({
       title: t('preview.toastSuccess'),

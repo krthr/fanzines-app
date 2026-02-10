@@ -9,16 +9,44 @@
       class="fanzine-cell relative overflow-hidden"
       :class="{
         'cursor-pointer': !readonly,
-        'ring-3 ring-primary ring-inset z-10': selectedIndex === index,
+        'ring-3 ring-primary ring-inset z-10': mode === 'reorder' && selectedIndex === index,
+        'ring-3 ring-blue-500 ring-inset z-10': mode === 'text' && editingIndex === index,
         'hover:brightness-105': !readonly && selectedIndex !== index,
       }"
-      @click="onCellClick(index)"
     >
+      <!-- Clickable area for reorder mode -->
+      <div
+        v-if="mode === 'reorder'"
+        class="absolute inset-0 z-[5]"
+        @click="onCellClick(index)"
+      />
+
       <img
         :src="photo.url"
         :alt="$t('grid.photoAlt', { n: index + 1 })"
         class="w-full h-full object-cover select-none pointer-events-none transition-transform duration-200"
       >
+
+      <!-- Text overlay (renders in all modes when content exists) -->
+      <div
+        v-if="pageTexts[index]?.content"
+        class="absolute inset-x-0 pointer-events-none z-[2] px-1 sm:px-2"
+        :class="[
+          pageTexts[index]!.position === 'top' ? 'top-0' : 'bottom-0',
+          layout.isRotated(index) ? 'rotate-180' : '',
+        ]"
+      >
+        <div
+          class="w-full py-0.5 sm:py-1 px-1 sm:px-2 text-center leading-tight break-words"
+          :class="[
+            textSizeClass(pageTexts[index]!.size),
+            textColorClass(pageTexts[index]!.color),
+            textBgClass(pageTexts[index]!.color, pageTexts[index]!.position),
+          ]"
+        >
+          {{ pageTexts[index]!.content }}
+        </div>
+      </div>
 
       <!-- Page label overlay -->
       <div
@@ -43,27 +71,59 @@
 
       <!-- Number overlay (hidden when labels are visible) -->
       <div
-        v-if="!showLabels"
-        class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs text-center py-1 font-medium"
+        v-if="!showLabels && mode !== 'text'"
+        class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs text-center py-1 font-medium pointer-events-none"
         :class="{ 'opacity-0': selectedIndex === index }"
       >
         {{ index + 1 }}
       </div>
 
-      <!-- Swap badge -->
+      <!-- Swap badge (reorder mode only) -->
       <div
-        v-if="selectedIndex === index && !readonly"
-        class="absolute inset-0 flex items-center justify-center bg-primary/20"
+        v-if="mode === 'reorder' && selectedIndex === index && !readonly"
+        class="absolute inset-0 flex items-center justify-center bg-primary/20 pointer-events-none"
       >
         <UBadge :label="$t('grid.swap')" size="md" color="primary" variant="solid" class="shadow-lg" />
       </div>
-      <!-- Target hint when one is selected -->
+      <!-- Target hint when one is selected (reorder mode only) -->
       <div
-        v-if="selectedIndex !== null && selectedIndex !== index && !readonly"
-        class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/30"
+        v-if="mode === 'reorder' && selectedIndex !== null && selectedIndex !== index && !readonly"
+        class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/30 z-[6]"
+        @click="onCellClick(index)"
       >
         <UBadge :label="$t('grid.placeHere')" size="sm" color="neutral" variant="solid" />
       </div>
+
+      <!-- Text edit button (text mode only) -->
+      <UPopover
+        v-if="mode === 'text' && !readonly"
+        :open="editingIndex === index"
+        :content="{ side: 'bottom', align: 'center', sideOffset: 4 }"
+        @update:open="(val: boolean) => onPopoverToggle(index, val)"
+      >
+        <button
+          class="absolute inset-0 z-[5] flex items-center justify-center transition-opacity"
+          :class="editingIndex === index ? 'bg-blue-500/15' : 'opacity-0 hover:opacity-100 bg-black/30'"
+          @click.stop="onTextCellClick(index)"
+        >
+          <UBadge
+            :label="pageTexts[index]?.content ? $t('text.edit') : $t('text.add')"
+            size="sm"
+            color="info"
+            variant="solid"
+            class="shadow-lg"
+          />
+        </button>
+
+        <template #content>
+          <PageTextEditor
+            :model-value="pageTexts[index]!"
+            :label-key="layout.getPageLabelKey(index)"
+            :page-role="layout.getSlot(index)?.role ?? ''"
+            @update:model-value="emit('update:pageText', index, $event)"
+          />
+        </template>
+      </UPopover>
     </div>
 
     <!-- Fold guide overlay (positioned over the entire grid) -->
@@ -114,14 +174,16 @@
 </template>
 
 <script setup lang="ts">
-import type { PhotoItem } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
 
 interface FanzineGridProps {
   photos: PhotoItem[];
+  pageTexts: PageText[];
   gap?: number;
   readonly?: boolean;
   showLabels?: boolean;
   showGuides?: boolean;
+  mode?: 'reorder' | 'text';
 }
 
 const props = withDefaults(defineProps<FanzineGridProps>(), {
@@ -129,10 +191,12 @@ const props = withDefaults(defineProps<FanzineGridProps>(), {
   readonly: false,
   showLabels: false,
   showGuides: false,
+  mode: 'reorder',
 });
 
 const emit = defineEmits<{
   reorder: [fromIndex: number, toIndex: number];
+  'update:pageText': [index: number, value: PageText];
 }>();
 
 const layout = useFanzineLayout();
@@ -144,25 +208,73 @@ watch(() => props.gap, (val) => {
   gridEl.value?.style.setProperty('--grid-gap', `${val}px`);
 }, { immediate: true });
 
-// Click-to-swap state
+// Click-to-swap state (reorder mode)
 const selectedIndex = ref<number | null>(null);
 
+// Text editing state (text mode)
+const editingIndex = ref<number | null>(null);
+
+// Clear selection when mode changes
+watch(() => props.mode, () => {
+  selectedIndex.value = null;
+  editingIndex.value = null;
+});
+
 function onCellClick(index: number): void {
-  if (props.readonly) return;
+  if (props.readonly || props.mode !== 'reorder') return;
 
   if (selectedIndex.value === null) {
-    // First click: select this photo
     selectedIndex.value = index;
   }
   else if (selectedIndex.value === index) {
-    // Clicked same photo: deselect
     selectedIndex.value = null;
   }
   else {
-    // Second click on a different photo: swap them
     emit('reorder', selectedIndex.value, index);
     selectedIndex.value = null;
   }
+}
+
+function onTextCellClick(index: number): void {
+  if (props.readonly || props.mode !== 'text') return;
+  editingIndex.value = editingIndex.value === index ? null : index;
+}
+
+function onPopoverToggle(index: number, open: boolean): void {
+  if (!open && editingIndex.value === index) {
+    editingIndex.value = null;
+  }
+}
+
+// Text style helpers
+function textSizeClass(size: TextSize): string {
+  switch (size) {
+    case 'sm': return 'text-[8px] sm:text-[10px] font-medium';
+    case 'md': return 'text-[10px] sm:text-xs font-semibold';
+    case 'lg': return 'text-xs sm:text-sm font-bold';
+  }
+}
+
+function textColorClass(color: TextColor): string {
+  switch (color) {
+    case 'white': return 'text-white';
+    case 'black': return 'text-zinc-900';
+    case 'rose': return 'text-rose-500';
+  }
+}
+
+function textBgClass(color: TextColor, position: string): string {
+  // Use a gradient background that matches the position (fades away from the edge)
+  const isTop = position === 'top';
+  if (color === 'black') {
+    return isTop
+      ? 'bg-gradient-to-b from-white/70 to-white/40'
+      : 'bg-gradient-to-t from-white/70 to-white/40';
+  }
+  // For white and rose text, use dark gradient
+  return isTop
+    ? 'bg-gradient-to-b from-black/60 to-black/30'
+    : 'bg-gradient-to-t from-black/60 to-black/30';
 }
 </script>
 

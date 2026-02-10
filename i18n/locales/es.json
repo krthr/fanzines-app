@@ -35,7 +35,10 @@
     "title": "Organizar diseño",
     "gapLabel": "Espacio",
     "apply": "Aplicar",
-    "swapHint": "Haz clic en una foto para seleccionarla, luego haz clic en otra para intercambiar sus posiciones."
+    "swapHint": "Haz clic en una foto para seleccionarla, luego haz clic en otra para intercambiar sus posiciones.",
+    "textHint": "Haz clic en una página para agregar o editar texto.",
+    "modeReorder": "Reordenar",
+    "modeText": "Editar texto"
   },
   "exportCard": {
     "title": "Exporta tu fanzine"
@@ -72,6 +75,21 @@
     "photoAlt": "Foto {n}",
     "swap": "Intercambiar",
     "placeHere": "Colocar aquí"
+  },
+  "text": {
+    "add": "Agregar texto",
+    "edit": "Editar texto",
+    "clear": "Borrar texto",
+    "position": "Posición",
+    "position.top": "Arriba",
+    "position.bottom": "Abajo",
+    "size": "Tamaño",
+    "color": "Color",
+    "placeholder": {
+      "frontCover": "Título del zine...",
+      "backCover": "Créditos, info...",
+      "page": "Leyenda..."
+    }
   },
   "booklet": {
     "prev": "Páginas anteriores",

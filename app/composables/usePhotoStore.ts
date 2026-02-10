@@ -3,11 +3,31 @@ export interface PhotoItem {
   url: string;
 }
 
+export type TextPosition = 'top' | 'bottom';
+export type TextSize = 'sm' | 'md' | 'lg';
+export type TextColor = 'white' | 'black' | 'rose';
+
+export interface PageText {
+  content: string;
+  position: TextPosition;
+  size: TextSize;
+  color: TextColor;
+}
+
 const MAX_PHOTOS = 8;
+
+function createDefaultPageText(): PageText {
+  return { content: '', position: 'bottom', size: 'md', color: 'white' };
+}
+
+function createDefaultPageTexts(): PageText[] {
+  return Array.from({ length: MAX_PHOTOS }, () => createDefaultPageText());
+}
 
 // Module-scoped state (client-only, never leaves the browser)
 const photos = shallowRef<PhotoItem[]>([]);
 const gap = ref<number>(0);
+const pageTexts = ref<PageText[]>(createDefaultPageTexts());
 
 export function usePhotoStore() {
   /**
@@ -54,6 +74,13 @@ export function usePhotoStore() {
     next[fromIndex] = next[toIndex]!;
     next[toIndex] = temp;
     photos.value = next;
+
+    // Swap corresponding page texts
+    const texts = [...pageTexts.value];
+    const tmpText = texts[fromIndex]!;
+    texts[fromIndex] = texts[toIndex]!;
+    texts[toIndex] = tmpText;
+    pageTexts.value = texts;
   }
 
   function clear(): void {
@@ -61,6 +88,14 @@ export function usePhotoStore() {
       URL.revokeObjectURL(photo.url);
     }
     photos.value = [];
+    pageTexts.value = createDefaultPageTexts();
+  }
+
+  function updatePageText(index: number, updates: Partial<PageText>): void {
+    if (index < 0 || index >= MAX_PHOTOS) return;
+    const texts = [...pageTexts.value];
+    texts[index] = { ...texts[index]!, ...updates };
+    pageTexts.value = texts;
   }
 
   const isFull = computed(() => photos.value.length >= MAX_PHOTOS);
@@ -69,10 +104,12 @@ export function usePhotoStore() {
   return {
     photos,
     gap,
+    pageTexts,
     addPhotos,
     removePhoto,
     reorder,
     clear,
+    updatePageText,
     isFull,
     count,
     MAX_PHOTOS,

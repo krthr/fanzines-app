@@ -16,6 +16,23 @@
               :alt="$t(currentLabels[0])"
               class="w-full h-full object-cover"
             >
+            <!-- Text overlay for left page -->
+            <div
+              v-if="currentSpreadTexts[0]?.content"
+              class="absolute inset-x-0 px-2 z-[2]"
+              :class="currentSpreadTexts[0].position === 'top' ? 'top-0' : 'bottom-0'"
+            >
+              <div
+                class="w-full py-1 px-2 text-center leading-tight break-words"
+                :class="[
+                  bookletTextSize(currentSpreadTexts[0].size),
+                  bookletTextColor(currentSpreadTexts[0].color),
+                  bookletTextBg(currentSpreadTexts[0].color, currentSpreadTexts[0].position),
+                ]"
+              >
+                {{ currentSpreadTexts[0].content }}
+              </div>
+            </div>
             <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs text-center py-1.5 font-medium">
               {{ $t(currentLabels[0]) }}
             </div>
@@ -29,6 +46,23 @@
               :alt="$t(currentLabels[1])"
               class="w-full h-full object-cover"
             >
+            <!-- Text overlay for right page -->
+            <div
+              v-if="currentSpreadTexts[1]?.content"
+              class="absolute inset-x-0 px-2 z-[2]"
+              :class="currentSpreadTexts[1].position === 'top' ? 'top-0' : 'bottom-0'"
+            >
+              <div
+                class="w-full py-1 px-2 text-center leading-tight break-words"
+                :class="[
+                  bookletTextSize(currentSpreadTexts[1].size),
+                  bookletTextColor(currentSpreadTexts[1].color),
+                  bookletTextBg(currentSpreadTexts[1].color, currentSpreadTexts[1].position),
+                ]"
+              >
+                {{ currentSpreadTexts[1].content }}
+              </div>
+            </div>
             <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs text-center py-1.5 font-medium">
               {{ $t(currentLabels[1]) }}
             </div>
@@ -77,10 +111,11 @@
 </template>
 
 <script setup lang="ts">
-import type { PhotoItem } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
 
 interface BookletPreviewProps {
   photos: PhotoItem[];
+  pageTexts: PageText[];
 }
 
 const props = defineProps<BookletPreviewProps>();
@@ -90,10 +125,26 @@ const layout = useFanzineLayout();
 const spreads = computed(() => layout.getSpreads(props.photos));
 const spreadLabels = computed(() => layout.getSpreadLabels());
 
+/**
+ * Get page texts in reading order, matching the spread layout.
+ * Each entry is a pair of PageText for the left and right pages.
+ */
+const spreadTexts = computed((): [PageText | undefined, PageText | undefined][] => {
+  const readingOrderTexts = layout.getReadingOrderTexts(props.pageTexts);
+  const pairs: [PageText | undefined, PageText | undefined][] = [];
+  for (let i = 0; i < readingOrderTexts.length; i += 2) {
+    pairs.push([readingOrderTexts[i], readingOrderTexts[i + 1]]);
+  }
+  return pairs;
+});
+
 const currentIndex = ref(0);
 
 const currentSpread = computed(() => spreads.value[currentIndex.value]);
 const currentLabels = computed((): [string, string] => spreadLabels.value[currentIndex.value] ?? ['', '']);
+const currentSpreadTexts = computed((): [PageText | undefined, PageText | undefined] =>
+  spreadTexts.value[currentIndex.value] ?? [undefined, undefined],
+);
 
 // Reset to first spread when photos change
 watch(() => props.photos, () => {
@@ -117,6 +168,35 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown);
 });
+
+// Text style helpers (booklet uses slightly larger sizes since pages are bigger)
+function bookletTextSize(size: TextSize): string {
+  switch (size) {
+    case 'sm': return 'text-[10px] sm:text-xs font-medium';
+    case 'md': return 'text-xs sm:text-sm font-semibold';
+    case 'lg': return 'text-sm sm:text-base font-bold';
+  }
+}
+
+function bookletTextColor(color: TextColor): string {
+  switch (color) {
+    case 'white': return 'text-white';
+    case 'black': return 'text-zinc-900';
+    case 'rose': return 'text-rose-500';
+  }
+}
+
+function bookletTextBg(color: TextColor, position: string): string {
+  const isTop = position === 'top';
+  if (color === 'black') {
+    return isTop
+      ? 'bg-gradient-to-b from-white/70 to-white/40'
+      : 'bg-gradient-to-t from-white/70 to-white/40';
+  }
+  return isTop
+    ? 'bg-gradient-to-b from-black/60 to-black/30'
+    : 'bg-gradient-to-t from-black/60 to-black/30';
+}
 </script>
 
 <style scoped>

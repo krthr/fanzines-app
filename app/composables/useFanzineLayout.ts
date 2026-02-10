@@ -1,4 +1,5 @@
 import type { PhotoItem } from '~/composables/usePhotoStore';
+import type { PageText } from '~/composables/usePhotoStore';
 
 /**
  * 8-page fanzine fold layout mapping.
@@ -103,6 +104,19 @@ export function useFanzineLayout() {
   }
 
   /**
+   * Return page texts reordered into booklet reading order.
+   *
+   * Input: pageTexts array where index = grid position.
+   * Output: pageTexts array where index = reading order position.
+   */
+  function getReadingOrderTexts(pageTexts: PageText[]): PageText[] {
+    const sorted = [...LAYOUT].sort((a, b) => a.readingOrder - b.readingOrder);
+    return sorted
+      .map(slot => pageTexts[slot.gridIndex])
+      .filter((t): t is PageText => t !== undefined);
+  }
+
+  /**
    * Return the reading-order spreads for the booklet preview.
    * Each spread is a pair of pages shown side by side.
    *
@@ -141,6 +155,7 @@ export function useFanzineLayout() {
     getPageLabelKey,
     isRotated,
     getReadingOrder,
+    getReadingOrderTexts,
     getSpreads,
     getSpreadLabels,
   };

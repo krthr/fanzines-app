@@ -97,9 +97,29 @@
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <p class="text-sm text-muted">
-                    {{ $t('arrangeCard.swapHint') }}
+                    {{ gridMode === 'text'
+                      ? $t('arrangeCard.textHint')
+                      : $t('arrangeCard.swapHint')
+                    }}
                   </p>
                   <div class="flex items-center gap-2 shrink-0 ml-4">
+                    <!-- Mode toggle -->
+                    <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      <UButton
+                        :label="$t('arrangeCard.modeReorder')"
+                        icon="i-lucide-move"
+                        size="xs"
+                        :variant="gridMode === 'reorder' ? 'soft' : 'ghost'"
+                        :color="gridMode === 'reorder' ? 'primary' : 'neutral'"
+                        @click="gridMode = 'reorder'" />
+                      <UButton
+                        :label="$t('arrangeCard.modeText')"
+                        icon="i-lucide-type"
+                        size="xs"
+                        :variant="gridMode === 'text' ? 'soft' : 'ghost'"
+                        :color="gridMode === 'text' ? 'primary' : 'neutral'"
+                        @click="gridMode = 'text'" />
+                    </div>
                     <UButton
                       :label="$t('guides.showLabels')"
                       icon="i-lucide-tag"
@@ -120,10 +140,13 @@
                 <div class="rounded-lg overflow-hidden paper-shadow">
                   <FanzineGrid
                     :photos="photos"
+                    :page-texts="pageTexts"
                     :gap="gap"
+                    :mode="gridMode"
                     :show-labels="showLabels"
                     :show-guides="showGuides"
-                    @reorder="reorder" />
+                    @reorder="reorder"
+                    @update:page-text="(index, value) => updatePageText(index, value)" />
                 </div>
               </div>
             </UCard>
@@ -178,7 +201,7 @@
 import type {StepperItem} from '@nuxt/ui';
 
 const {t} = useI18n();
-const {photos, gap, reorder, count, MAX_PHOTOS} = usePhotoStore();
+const {photos, gap, pageTexts, reorder, updatePageText, count, MAX_PHOTOS} = usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.
 // Only committed to the store (and grid) when user clicks "Apply".
@@ -187,6 +210,9 @@ const draftGap = ref(gap.value);
 // Arrange step display toggles
 const showLabels = ref(false);
 const showGuides = ref(false);
+
+// Grid interaction mode: reorder (click-to-swap) or text (click-to-edit)
+const gridMode = ref<'reorder' | 'text'>('reorder');
 
 function applyGap(): void {
   gap.value = draftGap.value;

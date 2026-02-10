@@ -35,7 +35,10 @@
     "title": "Arrange Layout",
     "gapLabel": "Gap",
     "apply": "Apply",
-    "swapHint": "Click a photo to select it, then click another to swap their positions."
+    "swapHint": "Click a photo to select it, then click another to swap their positions.",
+    "textHint": "Click a page to add or edit text.",
+    "modeReorder": "Reorder",
+    "modeText": "Edit Text"
   },
   "exportCard": {
     "title": "Export Your Zine"
@@ -72,6 +75,21 @@
     "photoAlt": "Photo {n}",
     "swap": "Swap",
     "placeHere": "Place here"
+  },
+  "text": {
+    "add": "Add text",
+    "edit": "Edit text",
+    "clear": "Clear text",
+    "position": "Position",
+    "position.top": "Top",
+    "position.bottom": "Bottom",
+    "size": "Size",
+    "color": "Color",
+    "placeholder": {
+      "frontCover": "Zine title...",
+      "backCover": "Credits, info...",
+      "page": "Caption..."
+    }
   },
   "booklet": {
     "prev": "Previous spread",
