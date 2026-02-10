@@ -17,9 +17,11 @@
           class="w-40"
           @update:model-value="setLocale($event as 'en' | 'es')" />
 
-        <UTooltip :text="$t('app.toggleDarkMode')">
-          <UColorModeButton />
-        </UTooltip>
+        <ClientOnly>
+          <UTooltip :text="$t('app.toggleDarkMode')">
+            <UColorModeButton />
+          </UTooltip>
+        </ClientOnly>
       </template>
     </UHeader>
 
