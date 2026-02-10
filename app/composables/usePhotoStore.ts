@@ -1,4 +1,11 @@
 import { processImages } from '~/composables/useImageProcessor';
+import {
+  savePhoto,
+  deletePhoto,
+  saveMeta,
+  loadSession,
+  clearAll,
+} from '~/utils/storage';
 
 export interface PhotoItem {
   id: string;
@@ -35,7 +42,56 @@ const gap = ref<number>(0);
 const pageTexts = ref<PageText[]>(createDefaultPageTexts());
 const isProcessing = ref(false);
 
+// --- Persistence helpers ---
+
+let restored = false;
+
+async function fetchBlob(url: string): Promise<Blob> {
+  const res = await fetch(url);
+  return res.blob();
+}
+
+function persistPhotos(): void {
+  const items = photos.value;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!;
+    fetchBlob(item.url).then(blob => savePhoto(item.id, blob, i));
+  }
+}
+
+function persistMeta(): void {
+  saveMeta(gap.value, pageTexts.value);
+}
+
+async function restoreSession(): Promise<void> {
+  try {
+    const session = await loadSession();
+
+    if (session.photos.length > 0) {
+      photos.value = session.photos.map(p => ({
+        id: p.id,
+        url: URL.createObjectURL(p.blob),
+      }));
+    }
+
+    if (session.meta) {
+      gap.value = session.meta.gap;
+      pageTexts.value = session.meta.pageTexts as PageText[];
+    }
+  } catch {
+    // IndexedDB unavailable or corrupt — start fresh
+  }
+}
+
 export function usePhotoStore() {
+  if (!restored) {
+    restored = true;
+    restoreSession();
+
+    // Watch gap for changes and persist
+    watch(gap, () => persistMeta());
+  }
+
   /**
    * Adds local photos from a file picker / drag-and-drop.
    * Images are resized and compressed before being stored so that
@@ -56,6 +112,10 @@ export function usePhotoStore() {
       }));
 
       photos.value = [...photos.value, ...newItems];
+
+      // Persist all photos (re-save with correct order indices)
+      persistPhotos();
+      persistMeta();
     } finally {
       isProcessing.value = false;
     }
@@ -70,6 +130,11 @@ export function usePhotoStore() {
     const arr = [...photos.value];
     arr.splice(index, 1);
     photos.value = arr;
+
+    // Remove from IndexedDB and re-save remaining orders
+    deletePhoto(photo.id);
+    persistPhotos();
+    persistMeta();
   }
 
   function reorder(fromIndex: number, toIndex: number): void {
@@ -94,6 +159,9 @@ export function usePhotoStore() {
     texts[fromIndex] = texts[toIndex]!;
     texts[toIndex] = tmpText;
     pageTexts.value = texts;
+
+    persistPhotos();
+    persistMeta();
   }
 
   function clear(): void {
@@ -102,6 +170,8 @@ export function usePhotoStore() {
     }
     photos.value = [];
     pageTexts.value = createDefaultPageTexts();
+
+    clearAll();
   }
 
   function updatePageText(index: number, updates: Partial<PageText>): void {
@@ -109,6 +179,8 @@ export function usePhotoStore() {
     const texts = [...pageTexts.value];
     texts[index] = { ...texts[index]!, ...updates };
     pageTexts.value = texts;
+
+    persistMeta();
   }
 
   const isFull = computed(() => photos.value.length >= MAX_PHOTOS);
