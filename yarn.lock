@@ -1095,6 +1095,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@iconify-json/lucide@npm:^1.2.90":
+  version: 1.2.90
+  resolution: "@iconify-json/lucide@npm:1.2.90"
+  dependencies:
+    "@iconify/types": "npm:*"
+  checksum: 10c0/d6a40a5cdddc945df2720179a95e1d6265574adae8ed3753a84319dcc085b013871ad535a122efda54520b98e55a7b02f20fb1ff4289a10e57989c8521213e35
+  languageName: node
+  linkType: hard
+
 "@iconify/collections@npm:^1.0.641":
   version: 1.0.648
   resolution: "@iconify/collections@npm:1.0.648"
@@ -7434,6 +7443,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "fanzine-app@workspace:."
   dependencies:
+    "@iconify-json/lucide": "npm:^1.2.90"
     "@nuxt/fonts": "npm:^0.13.0"
     "@nuxt/scripts": "npm:^1.0.0-beta.1"
     "@nuxt/ui": "npm:^4.4.0"

@@ -38,7 +38,7 @@
         </p>
       </template>
 
-      <template>
+      <template #default>
         <a
           href="https://www.instagram.com/wilson__tovar/"
           target="_blank"
