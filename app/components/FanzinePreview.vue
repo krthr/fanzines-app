@@ -74,6 +74,7 @@
 import type { TabsItem } from '@nuxt/ui';
 
 const { t } = useI18n();
+const { $posthog } = useNuxtApp();
 const { photos, gap } = usePhotoStore();
 const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
@@ -95,15 +96,26 @@ const tabs = computed<TabsItem[]>(() => [
 ]);
 
 async function handleExport(): Promise<void> {
+  const eventProps = {
+    photo_count: photos.value.length,
+    show_guides: pdfGuides.value,
+    gap: gap.value,
+  };
+
   try {
     await exportToPdf(photos.value, gap.value, { showGuides: pdfGuides.value });
+    $posthog()?.capture('fanzine_exported', eventProps);
     toast.add({
       title: t('preview.toastSuccess'),
       description: t('preview.toastSuccessDesc'),
       color: 'success',
       icon: 'i-lucide-check-circle',
     });
-  } catch {
+  } catch (error) {
+    $posthog()?.capture('fanzine_export_failed', {
+      ...eventProps,
+      error: error instanceof Error ? error.message : String(error),
+    });
     toast.add({
       title: t('preview.toastFailed'),
       description: t('preview.toastFailedDesc'),
