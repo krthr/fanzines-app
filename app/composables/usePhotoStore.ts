@@ -12,7 +12,7 @@ export interface PhotoItem {
   url: string;
 }
 
-export type TextSize = 'sm' | 'md' | 'lg';
+export type TextSize = 'sm' | 'md' | 'lg' | 'xl';
 export type TextColor = 'white' | 'black' | 'rose';
 export type TextFont = 'sans' | 'serif' | 'mono' | 'handwritten';
 

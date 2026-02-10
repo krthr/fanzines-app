@@ -210,6 +210,7 @@ const sizes: { value: TextSize; label: string }[] = [
   { value: 'sm', label: 'S' },
   { value: 'md', label: 'M' },
   { value: 'lg', label: 'L' },
+  { value: 'xl', label: 'XL' },
 ];
 
 const colors: { value: TextColor; label: string; bg: string }[] = [

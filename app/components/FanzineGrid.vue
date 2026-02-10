@@ -321,6 +321,7 @@ function textSizeClass(size: TextSize): string {
     case 'sm': return 'text-[8px] sm:text-[10px] font-medium';
     case 'md': return 'text-[10px] sm:text-xs font-semibold';
     case 'lg': return 'text-xs sm:text-sm font-bold';
+    case 'xl': return 'text-sm sm:text-base font-bold';
   }
 }
 

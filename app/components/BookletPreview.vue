@@ -187,6 +187,7 @@ function bookletTextSize(size: TextSize): string {
     case 'sm': return 'text-[10px] sm:text-xs font-medium';
     case 'md': return 'text-xs sm:text-sm font-semibold';
     case 'lg': return 'text-sm sm:text-base font-bold';
+    case 'xl': return 'text-base sm:text-lg font-bold';
   }
 }
 

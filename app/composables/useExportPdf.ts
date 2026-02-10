@@ -88,6 +88,7 @@ function getTextFontSize(size: TextSize): number {
     case 'sm': return 24;
     case 'md': return 36;
     case 'lg': return 48;
+    case 'xl': return 64;
   }
 }
 
