@@ -77,6 +77,21 @@ export default defineNuxtConfig({
         provider: 'google',
         weights: [400, 500, 600, 700],
       },
+      {
+        name: 'Playfair Display',
+        provider: 'google',
+        weights: [400, 600, 700],
+      },
+      {
+        name: 'JetBrains Mono',
+        provider: 'google',
+        weights: [400, 500, 700],
+      },
+      {
+        name: 'Caveat',
+        provider: 'google',
+        weights: [400, 500, 700],
+      },
     ],
   },
 

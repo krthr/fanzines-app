@@ -3,6 +3,9 @@
 
 @theme {
   --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+  --font-handwritten: 'Caveat', 'Segoe Print', cursive;
 }
 
 /* Smooth scrolling */

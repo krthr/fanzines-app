@@ -16,8 +16,7 @@
           :model-value="locale"
           :locales="availableLocales"
           class="w-40"
-          @update:model-value="setLocale($event as 'en' | 'es')"
-        />
+          @update:model-value="setLocale($event as 'en' | 'es')" />
 
         <UTooltip :text="$t('app.toggleDarkMode')">
           <UColorModeButton />
@@ -38,6 +37,17 @@
         </p>
       </template>
 
+      <template>
+        <a
+          href="https://www.instagram.com/wilson__tovar/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-muted hover:text-highlighted flex items-center gap-1 text-xs transition-colors">
+          {{ $t('app.madeBy', {name: 'Wilson Tovar'}) }}
+          <UIcon name="i-lucide-instagram" class="size-3.5" />
+        </a>
+      </template>
+
       <template #right>
         <p class="text-muted text-xs">
           &copy; {{ new Date().getFullYear() }} {{ $t('app.copyright') }}
@@ -48,11 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { en, es } from '@nuxt/ui/locale';
+import {en, es} from '@nuxt/ui/locale';
 
-const uiLocaleMap: Record<string, typeof en> = { en, es };
+const uiLocaleMap: Record<string, typeof en> = {en, es};
 
-const { locale, setLocale } = useI18n();
+const {locale, setLocale} = useI18n();
 
 const uiLocale = computed(() => uiLocaleMap[locale.value] ?? en);
 

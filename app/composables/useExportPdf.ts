@@ -1,5 +1,5 @@
 import type { PhotoItem } from '~/composables/usePhotoStore';
-import type { PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
+import type { PageText, TextSize, TextColor, TextFont } from '~/composables/usePhotoStore';
 import type { PageSlot } from '~/composables/useFanzineLayout';
 
 // A4 landscape at 300 DPI
@@ -100,9 +100,33 @@ function getTextFillColor(color: TextColor): string {
   }
 }
 
+/** Map TextFont to the CSS font-family string used on the canvas */
+function getCanvasFontFamily(font: TextFont): string {
+  switch (font) {
+    case 'sans': return "'Space Grotesk', sans-serif";
+    case 'serif': return "'Playfair Display', serif";
+    case 'mono': return "'JetBrains Mono', monospace";
+    case 'handwritten': return "'Caveat', cursive";
+  }
+}
+
+/**
+ * Ensure a specific font family is loaded before drawing on the canvas.
+ * Uses the Font Loading API (`document.fonts.load`).
+ */
+async function ensureFontLoaded(font: TextFont, size: number): Promise<void> {
+  const family = getCanvasFontFamily(font);
+  try {
+    await document.fonts.load(`${size}px ${family}`);
+  } catch {
+    // Silently fall back -- the canvas will use the next available family
+  }
+}
+
 /**
  * Draw a text overlay on a cell in the canvas.
- * Handles gradient background, centering, and rotation for top-row cells.
+ * Handles optional gradient background, font family, centering, and rotation
+ * for top-row cells.
  */
 function drawTextOverlay(
   ctx: CanvasRenderingContext2D,
@@ -128,40 +152,55 @@ function drawTextOverlay(
     ctx.translate(-(x + w / 2), -(y + h / 2));
   }
 
-  // Determine bar position
-  const barY = pageText.position === 'top' ? y : y + h - barHeight;
-
-  // Draw gradient background
-  const isLightText = pageText.color !== 'black';
+  // Determine bar position based on text position
+  let barY: number;
   if (pageText.position === 'top') {
-    const gradient = ctx.createLinearGradient(x, barY, x, barY + barHeight * 1.5);
-    if (isLightText) {
-      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    }
-    else {
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    }
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x, barY, w, barHeight * 1.5);
-  }
-  else {
-    const gradient = ctx.createLinearGradient(x, barY + barHeight, x, barY - barHeight * 0.5);
-    if (isLightText) {
-      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    }
-    else {
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    }
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x, barY - barHeight * 0.5, w, barHeight * 1.5);
+    barY = y;
+  } else if (pageText.position === 'center') {
+    barY = y + (h - barHeight) / 2;
+  } else {
+    barY = y + h - barHeight;
   }
 
-  // Draw text
-  ctx.font = `${fontSize >= 48 ? 'bold' : fontSize >= 36 ? '600' : 'normal'} ${fontSize}px sans-serif`;
+  // Draw background (only if showBg is true)
+  if (pageText.showBg) {
+    const isLightText = pageText.color !== 'black';
+    if (pageText.position === 'center') {
+      // Center: uniform semi-transparent bar
+      ctx.fillStyle = isLightText ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)';
+      ctx.fillRect(x, barY, w, barHeight);
+    } else if (pageText.position === 'top') {
+      const gradient = ctx.createLinearGradient(x, barY, x, barY + barHeight * 1.5);
+      if (isLightText) {
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      }
+      else {
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      }
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, barY, w, barHeight * 1.5);
+    }
+    else {
+      const gradient = ctx.createLinearGradient(x, barY + barHeight, x, barY - barHeight * 0.5);
+      if (isLightText) {
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      }
+      else {
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      }
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, barY - barHeight * 0.5, w, barHeight * 1.5);
+    }
+  }
+
+  // Draw text with the selected font
+  const fontFamily = getCanvasFontFamily(pageText.font);
+  const weight = fontSize >= 48 ? 'bold' : fontSize >= 36 ? '600' : 'normal';
+  ctx.font = `${weight} ${fontSize}px ${fontFamily}`;
   ctx.fillStyle = getTextFillColor(pageText.color);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -226,6 +265,14 @@ export function useExportPdf() {
 
       // Draw text overlays on the canvas (before converting to PDF image)
       if (pageTexts) {
+        // Pre-load all fonts used by text overlays so they render on the canvas
+        const usedFonts = new Set(
+          pageTexts.filter(pt => pt.content).map(pt => pt.font),
+        );
+        await Promise.all(
+          [...usedFonts].map(font => ensureFontLoaded(font, getTextFontSize('lg'))),
+        );
+
         for (let i = 0; i < Math.min(pageTexts.length, images.length); i++) {
           const col = i % COLS;
           const row = Math.floor(i / COLS);

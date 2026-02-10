@@ -3,6 +3,7 @@
     "title": "Fanzine",
     "tagline": "Create print-ready photo zines",
     "copyright": "Fanzine",
+    "madeBy": "Made by {name}",
     "toggleDarkMode": "Toggle dark mode"
   },
   "hero": {
@@ -82,10 +83,17 @@
     "edit": "Edit text",
     "clear": "Clear text",
     "position": "Position",
-    "position.top": "Top",
-    "position.bottom": "Bottom",
+    "positionTop": "Top",
+    "positionCenter": "Center",
+    "positionBottom": "Bottom",
     "size": "Size",
     "color": "Color",
+    "font": "Font",
+    "fontSans": "Sans",
+    "fontSerif": "Serif",
+    "fontMono": "Mono",
+    "fontHandwritten": "Hand",
+    "background": "Background",
     "placeholder": {
       "frontCover": "Zine title...",
       "backCover": "Credits, info...",

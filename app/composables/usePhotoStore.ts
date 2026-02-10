@@ -5,21 +5,24 @@ export interface PhotoItem {
   url: string;
 }
 
-export type TextPosition = 'top' | 'bottom';
+export type TextPosition = 'top' | 'center' | 'bottom';
 export type TextSize = 'sm' | 'md' | 'lg';
 export type TextColor = 'white' | 'black' | 'rose';
+export type TextFont = 'sans' | 'serif' | 'mono' | 'handwritten';
 
 export interface PageText {
   content: string;
   position: TextPosition;
   size: TextSize;
   color: TextColor;
+  font: TextFont;
+  showBg: boolean;
 }
 
 const MAX_PHOTOS = 8;
 
 function createDefaultPageText(): PageText {
-  return { content: '', position: 'bottom', size: 'md', color: 'white' };
+  return { content: '', position: 'bottom', size: 'md', color: 'white', font: 'sans', showBg: true };
 }
 
 function createDefaultPageTexts(): PageText[] {

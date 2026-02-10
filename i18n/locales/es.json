@@ -3,6 +3,7 @@
     "title": "Fanzine",
     "tagline": "Crea fanzines de fotos listos para imprimir",
     "copyright": "Fanzine",
+    "madeBy": "Hecho por {name}",
     "toggleDarkMode": "Cambiar modo oscuro"
   },
   "hero": {
@@ -82,10 +83,17 @@
     "edit": "Editar texto",
     "clear": "Borrar texto",
     "position": "Posición",
-    "position.top": "Arriba",
-    "position.bottom": "Abajo",
+    "positionTop": "Arriba",
+    "positionCenter": "Centro",
+    "positionBottom": "Abajo",
     "size": "Tamaño",
     "color": "Color",
+    "font": "Fuente",
+    "fontSans": "Sans",
+    "fontSerif": "Serif",
+    "fontMono": "Mono",
+    "fontHandwritten": "Manual",
+    "background": "Fondo",
     "placeholder": {
       "frontCover": "Título del zine...",
       "backCover": "Créditos, info...",

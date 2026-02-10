@@ -20,14 +20,15 @@
             <div
               v-if="currentSpreadTexts[0]?.content"
               class="absolute inset-x-0 px-2 z-[2]"
-              :class="currentSpreadTexts[0].position === 'top' ? 'top-0' : 'bottom-0'"
+              :class="bookletPositionClass(currentSpreadTexts[0].position)"
             >
               <div
                 class="w-full py-1 px-2 text-center leading-tight break-words"
                 :class="[
                   bookletTextSize(currentSpreadTexts[0].size),
                   bookletTextColor(currentSpreadTexts[0].color),
-                  bookletTextBg(currentSpreadTexts[0].color, currentSpreadTexts[0].position),
+                  bookletFontClass(currentSpreadTexts[0].font),
+                  currentSpreadTexts[0].showBg ? bookletTextBg(currentSpreadTexts[0].color, currentSpreadTexts[0].position) : '',
                 ]"
               >
                 {{ currentSpreadTexts[0].content }}
@@ -50,14 +51,15 @@
             <div
               v-if="currentSpreadTexts[1]?.content"
               class="absolute inset-x-0 px-2 z-[2]"
-              :class="currentSpreadTexts[1].position === 'top' ? 'top-0' : 'bottom-0'"
+              :class="bookletPositionClass(currentSpreadTexts[1].position)"
             >
               <div
                 class="w-full py-1 px-2 text-center leading-tight break-words"
                 :class="[
                   bookletTextSize(currentSpreadTexts[1].size),
                   bookletTextColor(currentSpreadTexts[1].color),
-                  bookletTextBg(currentSpreadTexts[1].color, currentSpreadTexts[1].position),
+                  bookletFontClass(currentSpreadTexts[1].font),
+                  currentSpreadTexts[1].showBg ? bookletTextBg(currentSpreadTexts[1].color, currentSpreadTexts[1].position) : '',
                 ]"
               >
                 {{ currentSpreadTexts[1].content }}
@@ -111,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PhotoItem, PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText, TextSize, TextColor, TextFont, TextPosition } from '~/composables/usePhotoStore';
 
 interface BookletPreviewProps {
   photos: PhotoItem[];
@@ -170,6 +172,14 @@ onUnmounted(() => {
 });
 
 // Text style helpers (booklet uses slightly larger sizes since pages are bigger)
+function bookletPositionClass(position: TextPosition): string {
+  switch (position) {
+    case 'top': return 'top-0';
+    case 'center': return 'top-1/2 -translate-y-1/2';
+    case 'bottom': return 'bottom-0';
+  }
+}
+
 function bookletTextSize(size: TextSize): string {
   switch (size) {
     case 'sm': return 'text-[10px] sm:text-xs font-medium';
@@ -186,7 +196,21 @@ function bookletTextColor(color: TextColor): string {
   }
 }
 
-function bookletTextBg(color: TextColor, position: string): string {
+function bookletFontClass(font: TextFont): string {
+  switch (font) {
+    case 'sans': return 'font-sans';
+    case 'serif': return 'font-serif';
+    case 'mono': return 'font-mono';
+    case 'handwritten': return 'font-handwritten';
+  }
+}
+
+function bookletTextBg(color: TextColor, position: TextPosition): string {
+  if (position === 'center') {
+    return color === 'black'
+      ? 'bg-white/55'
+      : 'bg-black/45';
+  }
   const isTop = position === 'top';
   if (color === 'black') {
     return isTop

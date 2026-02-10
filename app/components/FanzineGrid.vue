@@ -32,7 +32,7 @@
         v-if="pageTexts[index]?.content"
         class="absolute inset-x-0 pointer-events-none z-[2] px-1 sm:px-2"
         :class="[
-          pageTexts[index]!.position === 'top' ? 'top-0' : 'bottom-0',
+          textPositionClass(pageTexts[index]!.position),
           layout.isRotated(index) ? 'rotate-180' : '',
         ]"
       >
@@ -41,7 +41,8 @@
           :class="[
             textSizeClass(pageTexts[index]!.size),
             textColorClass(pageTexts[index]!.color),
-            textBgClass(pageTexts[index]!.color, pageTexts[index]!.position),
+            textFontClass(pageTexts[index]!.font),
+            pageTexts[index]!.showBg ? textBgClass(pageTexts[index]!.color, pageTexts[index]!.position) : '',
           ]"
         >
           {{ pageTexts[index]!.content }}
@@ -174,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PhotoItem, PageText, TextSize, TextColor } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText, TextSize, TextColor, TextFont, TextPosition } from '~/composables/usePhotoStore';
 
 interface FanzineGridProps {
   photos: PhotoItem[];
@@ -247,6 +248,14 @@ function onPopoverToggle(index: number, open: boolean): void {
 }
 
 // Text style helpers
+function textPositionClass(position: TextPosition): string {
+  switch (position) {
+    case 'top': return 'top-0';
+    case 'center': return 'top-1/2 -translate-y-1/2';
+    case 'bottom': return 'bottom-0';
+  }
+}
+
 function textSizeClass(size: TextSize): string {
   switch (size) {
     case 'sm': return 'text-[8px] sm:text-[10px] font-medium';
@@ -263,8 +272,23 @@ function textColorClass(color: TextColor): string {
   }
 }
 
-function textBgClass(color: TextColor, position: string): string {
+function textFontClass(font: TextFont): string {
+  switch (font) {
+    case 'sans': return 'font-sans';
+    case 'serif': return 'font-serif';
+    case 'mono': return 'font-mono';
+    case 'handwritten': return 'font-handwritten';
+  }
+}
+
+function textBgClass(color: TextColor, position: TextPosition): string {
   // Use a gradient background that matches the position (fades away from the edge)
+  if (position === 'center') {
+    // Center: uniform semi-transparent bar
+    return color === 'black'
+      ? 'bg-white/55'
+      : 'bg-black/45';
+  }
   const isTop = position === 'top';
   if (color === 'black') {
     return isTop
