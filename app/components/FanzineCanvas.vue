@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="containerEl"
-    class="fanzine-canvas-container relative"
-  >
+  <div class="fanzine-canvas-container relative">
     <div ref="stageWrapperEl" :style="{ aspectRatio: '297 / 210', width: '100%' }">
       <ClientOnly>
       <v-stage
@@ -17,7 +14,7 @@
         </v-layer>
 
         <!-- Photos layer -->
-        <v-layer ref="photosLayerRef">
+        <v-layer>
           <template v-for="(cell, i) in cells" :key="'cell-' + i">
             <!-- Cell group: clipped to cell bounds, optionally rotated 180° -->
             <v-group
@@ -34,7 +31,7 @@
               />
 
               <!-- Text overlays for this cell: group wraps bg + text + selection for coordinated drag -->
-              <template v-for="(txt, j) in (pageTexts[i] ?? [])" :key="txt.id">
+              <template v-for="txt in (pageTexts[i] ?? [])" :key="txt.id">
                 <v-group
                   v-if="txt.content"
                   :config="getTextGroupConfig(i, txt, cell)"
@@ -308,10 +305,8 @@ const { t } = useI18n();
 const layout = useFanzineLayout();
 
 // Refs
-const containerEl = ref<HTMLDivElement | null>(null);
 const stageWrapperEl = ref<HTMLDivElement | null>(null);
 const stageRef = ref<{ getNode: () => Konva.Stage } | null>(null);
-const photosLayerRef = ref<{ getNode: () => Konva.Layer } | null>(null);
 
 // Stage sizing
 const stageSize = reactive({ width: 0, height: 0 });

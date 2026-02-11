@@ -147,8 +147,17 @@ export function useExportPdf() {
           const fontSize = getTextFontSizePx(txt.size, cell.h);
           const padding = fontSize * 0.6;
           const maxTextWidth = cell.w - padding * 2;
-          const textCenterX = cell.x + (txt.x / 100) * cell.w;
-          const textCenterY = cell.y + (txt.y / 100) * cell.h;
+
+          // For rotated cells, invert the local coordinates (same logic as FanzineCanvas)
+          let textCenterX: number;
+          let textCenterY: number;
+          if (rotated) {
+            textCenterX = cell.x + cell.w - (txt.x / 100) * cell.w;
+            textCenterY = cell.y + cell.h - (txt.y / 100) * cell.h;
+          } else {
+            textCenterX = cell.x + (txt.x / 100) * cell.w;
+            textCenterY = cell.y + (txt.y / 100) * cell.h;
+          }
           const isLightText = txt.color !== 'black';
 
           // Background pill
