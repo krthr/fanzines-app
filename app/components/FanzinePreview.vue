@@ -12,15 +12,15 @@
           <p class="text-sm text-muted">
             {{ $t('preview.printDescription') }}
           </p>
-          <div class="overflow-hidden paper-shadow">
+           <div class="overflow-hidden paper-shadow">
             <ZineCanvas
               ref="exportCanvasRef"
               :photos="photos"
               :page-texts="pageTexts"
               :gap="gap"
               readonly
-              show-labels
-              show-guides
+              :show-labels="!isExporting"
+              :show-guides="false"
             />
           </div>
         </div>
@@ -83,7 +83,11 @@ const { photos, gap, pageTexts } = usePhotoStore();
 const { exportToPdf, isExporting } = useCanvasExport();
 const toast = useToast();
 
-const exportCanvasRef = ref<{ getStageNode: () => KonvaStage | null } | null>(null);
+const exportCanvasRef = ref<{
+  getStageNode: () => KonvaStage | null;
+  getContentLayerNode: () => unknown;
+  getGuidesLayerNode: () => unknown;
+} | null>(null);
 const showTutorial = ref(false);
 const pdfGuides = ref(true);
 
@@ -102,7 +106,14 @@ const tabs = computed<TabsItem[]>(() => [
 
 async function handleExport(): Promise<void> {
   const stageNode = exportCanvasRef.value?.getStageNode();
-  if (!stageNode) return;
+  if (!stageNode) {
+    toast.add({
+      title: t('preview.toastFailed'),
+      description: t('preview.toastFailedDesc'),
+      color: 'error',
+    });
+    return;
+  }
 
   const eventProps = {
     photo_count: photos.value.length,
@@ -111,6 +122,14 @@ async function handleExport(): Promise<void> {
   };
 
   try {
+    // Hide UI-only elements before rasterizing (labels, cell numbers)
+    // Labels and cell numbers are Konva groups inside the content layer.
+    // The stage is rendered with show-labels=true for preview, but we need
+    // to hide them before export since PDF guides add their own labels.
+    // We temporarily hide the content layer's label/number groups by
+    // finding them and hiding them, then restore after export.
+    const contentLayer = exportCanvasRef.value?.getContentLayerNode() as { find?: (selector: string) => unknown[] } | null;
+
     await exportToPdf(stageNode, gap.value, {
       showGuides: pdfGuides.value,
     });

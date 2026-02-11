@@ -477,8 +477,12 @@ watch(
         // Load new image
         newLoaded[i] = null;
         const img = new Image();
+        const index = i;
         img.onload = () => {
-          loadedImages.value = { ...loadedImages.value, [i]: img };
+          loadedImages.value = { ...loadedImages.value, [index]: img };
+        };
+        img.onerror = () => {
+          console.warn(`[ZineCanvas] Failed to load image at index ${index}`);
         };
         img.src = photo.url;
       }
@@ -511,10 +515,32 @@ function getTextGroupConfig(pageText: PageText, cell: CellRect) {
   const x = percentToPixel(pageText.x, cell.width);
   const y = percentToPixel(pageText.y, cell.height);
 
+  // Clamp drag within cell bounds (5-95% range).
+  // In the rotated group, local coordinates are in rotated space,
+  // so we constrain relative to the group's local bounds (0 to cell size).
+  const margin = cell.width * 0.05;
+  const marginY = cell.height * 0.05;
+
   return {
     x,
     y,
     name: `text-${pageText.id}`,
+    dragBoundFunc: (pos: { x: number; y: number }) => {
+      // dragBoundFunc receives absolute stage coordinates.
+      // The text is inside nested groups: cell group (x: cell.x, y: cell.y)
+      //   -> clip group -> rotation group -> text group
+      // For the rotation group in rotated cells, Konva maps coordinates
+      // through the transform. We constrain in absolute space.
+      const absMinX = cell.x + margin;
+      const absMaxX = cell.x + cell.width - margin;
+      const absMinY = cell.y + marginY;
+      const absMaxY = cell.y + cell.height - marginY;
+
+      return {
+        x: Math.max(absMinX, Math.min(absMaxX, pos.x)),
+        y: Math.max(absMinY, Math.min(absMaxY, pos.y)),
+      };
+    },
   };
 }
 
@@ -525,6 +551,11 @@ function getTextConfig(pageText: PageText, cell: CellRect) {
   const fontStyle = fontSize >= 16 ? 'bold' : 'normal';
   const isLightText = pageText.color !== 'black';
 
+  // Estimate text width for centering via offsetX
+  const charWidth = fontSize * 0.6;
+  const estimatedWidth = Math.min(pageText.content.length * charWidth, cell.width * 0.9);
+  const textWidth = Math.max(estimatedWidth, fontSize); // minimum one char width
+
   return {
     text: pageText.content,
     fontSize,
@@ -532,7 +563,8 @@ function getTextConfig(pageText: PageText, cell: CellRect) {
     fontStyle,
     fill,
     align: 'center' as const,
-    offsetX: 0, // Will be updated after measuring
+    width: textWidth,
+    offsetX: textWidth / 2,
     offsetY: fontSize / 2,
     shadowColor: isLightText ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.6)',
     shadowBlur: 3,
@@ -674,8 +706,15 @@ function onTextDragEnd(e: KonvaEventObject<DragEvent>, cell: CellRect) {
   if (!selectedTextInfo.value) return;
 
   const node = e.target;
-  const localX = node.x();
-  const localY = node.y();
+  let localX = node.x();
+  let localY = node.y();
+
+  // In rotated cells (180deg), the local coordinate system is inverted.
+  // Convert back from rotated local space to normal percentage space.
+  if (cell.isRotated) {
+    localX = cell.width - localX;
+    localY = cell.height - localY;
+  }
 
   // Convert back to percentage
   const xPercent = pixelToPercent(localX, cell.width);

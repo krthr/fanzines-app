@@ -304,8 +304,12 @@ watch(
     for (const photo of newPhotos) {
       if (!imageCache.value.has(photo.url)) {
         const img = new Image();
+        const url = photo.url;
         img.onload = () => {
-          imageCache.value = new Map(imageCache.value).set(photo.url, img);
+          imageCache.value = new Map(imageCache.value).set(url, img);
+        };
+        img.onerror = () => {
+          console.warn(`[BookletCanvas] Failed to load image: ${url}`);
         };
         img.src = photo.url;
       }
@@ -370,6 +374,8 @@ function getBookletTextConfig(pageText: PageText) {
     fontStyle,
     fill,
     align: 'center' as const,
+    width: Math.max(pageText.content.length * fontSize * 0.6, fontSize),
+    offsetX: Math.max(pageText.content.length * fontSize * 0.6, fontSize) / 2,
     offsetY: fontSize / 2,
     shadowColor: isLightText ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.6)',
     shadowBlur: 3,
@@ -406,6 +412,10 @@ function getBookletTextBgConfig(pageText: PageText) {
 // ---------------------------------------------------------------------------
 
 function onKeyDown(e: KeyboardEvent) {
+  // Don't capture arrow keys when user is typing in an input/textarea
+  const tag = (e.target as HTMLElement)?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
   if (e.key === 'ArrowLeft' && currentSpread.value > 0) {
     currentSpread.value--;
   } else if (e.key === 'ArrowRight' && currentSpread.value < totalSpreads - 1) {
