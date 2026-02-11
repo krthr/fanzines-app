@@ -122,11 +122,14 @@ const dragTextId = ref<string | null>(null);
 // Animation frame handle
 let rafId: number | null = null;
 
+// Track whether an async image/font load is in progress to avoid concurrent loads
+let isLoadingAssets = false;
+
 // ---------------------------------------------------------------------------
-// Image loading
+// Image loading (async, triggers synchronous render when done)
 // ---------------------------------------------------------------------------
 
-async function loadImages(): Promise<void> {
+async function ensureImagesLoaded(): Promise<void> {
   const urls = props.photos.map(p => p.url);
 
   // Skip if same URLs already loaded
@@ -137,9 +140,55 @@ async function loadImages(): Promise<void> {
     return;
   }
 
-  const images = await loadAllImages(props.photos);
-  loadedImages.value = images;
-  imageUrlsLoaded.value = urls;
+  if (isLoadingAssets) return; // Avoid concurrent loads
+  isLoadingAssets = true;
+
+  try {
+    // Snapshot the photos before the await -- props may change during load
+    const photosSnapshot = [...props.photos];
+    const urlsSnapshot = photosSnapshot.map(p => p.url);
+
+    const images = await loadAllImages(photosSnapshot);
+
+    // Verify photos haven't changed during the async load
+    const currentUrls = props.photos.map(p => p.url);
+    if (
+      urlsSnapshot.length === currentUrls.length
+      && urlsSnapshot.every((u, i) => u === currentUrls[i])
+    ) {
+      loadedImages.value = images;
+      imageUrlsLoaded.value = urlsSnapshot;
+      scheduleRender(); // Trigger a synchronous render now that images are ready
+    } else {
+      // Photos changed during load -- retry
+      isLoadingAssets = false;
+      ensureImagesLoaded();
+      return;
+    }
+  } catch {
+    // Image load failed -- silently ignore, canvas will show black cells
+  } finally {
+    isLoadingAssets = false;
+  }
+}
+
+async function ensureFontsLoaded(): Promise<void> {
+  const canvas = canvasEl.value;
+  if (!canvas) return;
+
+  const hasText = props.pageTexts.flat().some(pt => pt.content);
+  if (!hasText) return;
+
+  try {
+    const tempCells = calcCellRects(canvas.width, canvas.height, props.gap);
+    const sampleH = tempCells[0]?.h ?? 300;
+    // Snapshot pageTexts before the await
+    const pageTextsSnapshot = props.pageTexts.map(arr => [...arr]);
+    await preloadFonts(pageTextsSnapshot, sampleH);
+    scheduleRender(); // Re-render after fonts are ready
+  } catch {
+    // Font load failed -- fall back to default fonts
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -166,31 +215,31 @@ function updateCanvasSize(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Render scheduling
+// Render scheduling (fully synchronous render, no awaits)
 // ---------------------------------------------------------------------------
 
 function scheduleRender(): void {
   if (rafId !== null) return;
   rafId = requestAnimationFrame(() => {
     rafId = null;
-    render();
+    renderSync();
   });
 }
 
-async function render(): Promise<void> {
+/**
+ * Synchronous render -- reads current props and draws to canvas immediately.
+ * No awaits, no race conditions. If images or fonts aren't loaded yet,
+ * the canvas simply shows what it can (black cells for missing images).
+ */
+function renderSync(): void {
   const canvas = canvasEl.value;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // Ensure images are loaded
-  await loadImages();
-
-  // Pre-load fonts for text overlays
-  if (props.pageTexts.flat().some(t => t.content)) {
-    const tempCells = calcCellRects(canvas.width, canvas.height, props.gap);
-    const sampleH = tempCells[0]?.h ?? 300;
-    await preloadFonts(props.pageTexts, sampleH);
+  // If images are not loaded yet, kick off async load (it will scheduleRender when done)
+  if (loadedImages.value.length === 0 && props.photos.length > 0) {
+    ensureImagesLoaded();
   }
 
   const interaction: InteractionState | null = props.readonly
@@ -365,7 +414,8 @@ function onPointerUp(event: PointerEvent): void {
     canvasEl.value?.releasePointerCapture(event.pointerId);
     isDragging.value = false;
     dragType.value = null;
-    selectedTextId.value = null;
+    // Keep selectedTextId so the selection indicator stays visible
+    // while the text editor popover is open
     scheduleRender();
   }
   hoverIndex.value = null;
@@ -401,6 +451,7 @@ function onWheel(event: WheelEvent): void {
       ...currentCrop,
       scale: newScale,
     });
+    scheduleRender(); // Immediate visual feedback for smooth zoom
   }
 }
 
@@ -507,7 +558,14 @@ watch(
       || !urls.every((u, i) => u === imageUrlsLoaded.value[i])
     ) {
       imageUrlsLoaded.value = []; // Force reload
+      ensureImagesLoaded();
     }
+
+    // If text overlays exist, ensure fonts are loaded
+    if (props.pageTexts.flat().some(pt => pt.content)) {
+      ensureFontsLoaded();
+    }
+
     scheduleRender();
   },
   { deep: true },

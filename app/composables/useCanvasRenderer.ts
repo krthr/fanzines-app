@@ -113,7 +113,7 @@ function getTextFillColor(color: TextColor): string {
   switch (color) {
     case 'white': return '#ffffff';
     case 'black': return '#18181b';
-    case 'rose': return '#8b1537';
+    case 'rose': return '#d946ef'; // fuchsia-500 to match UI swatch
   }
 }
 
@@ -217,6 +217,16 @@ function drawCell(
   }
 }
 
+/** Map TextSize to font weight (resolution-independent). */
+function getTextFontWeight(size: TextSize): string {
+  switch (size) {
+    case 'sm': return 'normal';
+    case 'md': return '600';
+    case 'lg': return 'bold';
+    case 'xl': return 'bold';
+  }
+}
+
 /**
  * Draw a single text overlay on a cell in the canvas.
  */
@@ -249,7 +259,7 @@ function drawTextOverlay(
 
   // Set font for text measurement
   const fontFamily = getCanvasFontFamily(pageText.font);
-  const weight = fontSize >= 48 ? 'bold' : fontSize >= 36 ? '600' : 'normal';
+  const weight = getTextFontWeight(pageText.size);
   ctx.font = `${weight} ${fontSize}px ${fontFamily}`;
 
   const maxTextWidth = w - padding * 2;
@@ -312,9 +322,13 @@ function drawFoldGuides(
   ctx: CanvasRenderingContext2D,
   canvasW: number,
   canvasH: number,
-  _gapPx: number,
+  gapPx: number,
 ): void {
   const lineWidth = Math.max(1, canvasW * 0.0006);
+
+  // Calculate actual cell dimensions to find the row boundary
+  const totalGapY = gapPx * (ROWS - 1);
+  const cellH = (canvasH - totalGapY) / ROWS;
 
   ctx.save();
 
@@ -323,8 +337,8 @@ function drawFoldGuides(
   ctx.lineWidth = lineWidth;
   ctx.setLineDash([canvasW * 0.005, canvasW * 0.005]);
 
-  // Horizontal center fold
-  const yCenter = canvasH / 2;
+  // Horizontal center fold (between the two rows, accounting for gap)
+  const yCenter = cellH + gapPx / 2;
   ctx.beginPath();
   ctx.moveTo(0, yCenter);
   ctx.lineTo(canvasW, yCenter);
@@ -592,6 +606,9 @@ export function hitTest(
   pageTexts: PageText[][],
   ctx: CanvasRenderingContext2D,
 ): HitTestResult {
+  // Save context state to avoid mutating font/style during hit testing
+  ctx.save();
+
   // Check texts first (they're on top)
   for (let i = cells.length - 1; i >= 0; i--) {
     const cell = cells[i]!;
@@ -606,7 +623,7 @@ export function hitTest(
       const fontSize = getTextFontSizePx(text.size, cell.h);
       const padding = fontSize * 0.6;
       const fontFamily = getCanvasFontFamily(text.font);
-      const weight = fontSize >= 48 ? 'bold' : fontSize >= 36 ? '600' : 'normal';
+      const weight = getTextFontWeight(text.size);
       ctx.font = `${weight} ${fontSize}px ${fontFamily}`;
 
       const metrics = ctx.measureText(text.content);
@@ -634,6 +651,7 @@ export function hitTest(
       ) {
         const relX = ((canvasX - cell.x) / cell.w) * 100;
         const relY = ((canvasY - cell.y) / cell.h) * 100;
+        ctx.restore();
         return {
           type: 'text',
           cellIndex: i,
@@ -655,6 +673,7 @@ export function hitTest(
       const rotated = layout[i]?.rotated ?? false;
       const relX = ((canvasX - cell.x) / cell.w) * 100;
       const relY = ((canvasY - cell.y) / cell.h) * 100;
+      ctx.restore();
       return {
         type: 'cell',
         cellIndex: i,
@@ -665,6 +684,7 @@ export function hitTest(
     }
   }
 
+  ctx.restore();
   return { type: 'empty', cellIndex: -1, textId: null, cellX: 0, cellY: 0 };
 }
 

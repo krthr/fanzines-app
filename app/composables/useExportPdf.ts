@@ -97,7 +97,7 @@ export function useExportPdf() {
 
       // Draw print guides on top of the image (vector, crisp at any zoom)
       if (showGuides) {
-        drawPrintGuides(pdf, gap);
+        drawPrintGuides(pdf, gap, LAYOUT);
       }
 
       pdf.save(filename);
@@ -127,7 +127,7 @@ interface JsPdfLike {
   text(text: string, x: number, y: number, options?: Record<string, unknown>): void;
 }
 
-function drawPrintGuides(pdf: JsPdfLike, gap: number): void {
+function drawPrintGuides(pdf: JsPdfLike, gap: number, layoutSlots: PageSlot[]): void {
   const gapMm = (gap / 900) * A4_WIDTH_MM;
   const cellW = (A4_WIDTH_MM - gapMm * (COLS - 1)) / COLS;
   const cellH = (A4_HEIGHT_MM - gapMm * (ROWS - 1)) / ROWS;
@@ -187,7 +187,7 @@ function drawPrintGuides(pdf: JsPdfLike, gap: number): void {
   pdf.setFontSize(LABEL_FONT_SIZE);
   pdf.setTextColor(160, 160, 160);
 
-  for (const slot of useFanzineLayout().LAYOUT) {
+  for (const slot of layoutSlots) {
     const cx = slot.col * (cellW + gapMm) + cellW / 2;
     const cy = slot.row * (cellH + gapMm);
 
