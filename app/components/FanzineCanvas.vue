@@ -32,27 +32,32 @@
                 :config="getImageConfig(i, cell)"
               />
 
-              <!-- Text overlays for this cell (rendered in cell-local space) -->
+              <!-- Text overlays for this cell: group wraps bg + text + selection for coordinated drag -->
               <template v-for="(txt, j) in (pageTexts[i] ?? [])" :key="txt.id">
-                <!-- Background pill -->
-                <v-rect
-                  v-if="txt.showBg && txt.content"
-                  :config="getTextBgConfig(txt, cell)"
-                />
-                <!-- Text node (draggable in text mode) -->
-                <v-text
+                <v-group
                   v-if="txt.content"
-                  :config="getTextNodeConfig(txt, cell)"
+                  :config="getTextGroupConfig(txt, cell)"
                   :draggable="mode === 'text' && !readonly"
+                  @dragmove="handleTextDragMove(i, txt, $event)"
                   @dragend="handleTextDragEnd(i, txt, $event)"
                   @click="handleTextClick(i, txt, $event)"
                   @tap="handleTextClick(i, txt, $event)"
-                />
-                <!-- Selection indicator for active text -->
-                <v-rect
-                  v-if="txt.content && selectedTextId === txt.id"
-                  :config="getTextSelectionConfig(txt, cell)"
-                />
+                >
+                  <!-- Background pill -->
+                  <v-rect
+                    v-if="txt.showBg"
+                    :config="getTextBgConfig(txt, cell)"
+                  />
+                  <!-- Text node -->
+                  <v-text
+                    :config="getTextNodeConfig(txt, cell)"
+                  />
+                  <!-- Selection indicator for active text -->
+                  <v-rect
+                    v-if="selectedTextId === txt.id"
+                    :config="getTextSelectionConfig(txt, cell)"
+                  />
+                </v-group>
               </template>
             </v-group>
           </template>
@@ -153,22 +158,24 @@
               />
 
               <!-- Selected badge: "Swap" -->
-              <v-label
+              <v-rect
                 v-if="selectedIndex === i"
-                :config="getBadgeLabelConfig(cell)"
-              >
-                <v-tag :config="{ fill: '#e11d48', cornerRadius: 4 }" />
-                <v-text :config="getBadgeTextConfig(t('grid.swap'), cell)" />
-              </v-label>
+                :config="getBadgeBgConfig(t('grid.swap'), cell, '#e11d48')"
+              />
+              <v-text
+                v-if="selectedIndex === i"
+                :config="getBadgeTextConfig(t('grid.swap'), cell)"
+              />
 
               <!-- Hover badge: "Place Here" -->
-              <v-label
+              <v-rect
                 v-if="hoverIndex === i && selectedIndex !== null && selectedIndex !== i"
-                :config="getBadgeLabelConfig(cell)"
-              >
-                <v-tag :config="{ fill: '#52525b', cornerRadius: 4 }" />
-                <v-text :config="getBadgeTextConfig(t('grid.placeHere'), cell)" />
-              </v-label>
+                :config="getBadgeBgConfig(t('grid.placeHere'), cell, '#52525b')"
+              />
+              <v-text
+                v-if="hoverIndex === i && selectedIndex !== null && selectedIndex !== i"
+                :config="getBadgeTextConfig(t('grid.placeHere'), cell)"
+              />
 
               <!-- Cell number at bottom (gradient + number) -->
               <v-rect
@@ -460,20 +467,33 @@ function getImageConfig(index: number, cell: CellRect): Record<string, unknown> 
 // Text overlay configs
 // ---------------------------------------------------------------------------
 
+/** Wrapper group for a text overlay -- positioned at text center, draggable as a unit. */
+function getTextGroupConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
+  const textCenterX = cell.x + (txt.x / 100) * cell.w;
+  const textCenterY = cell.y + (txt.y / 100) * cell.h;
+
+  return {
+    x: textCenterX,
+    y: textCenterY,
+    dragBoundFunc: (pos: { x: number; y: number }) => ({
+      x: Math.max(cell.x, Math.min(cell.x + cell.w, pos.x)),
+      y: Math.max(cell.y, Math.min(cell.y + cell.h, pos.y)),
+    }),
+    name: `text-group-${txt.id}`,
+  };
+}
+
+/** Text node config (positioned relative to its parent group at 0,0). */
 function getTextNodeConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
   const fontSize = getTextFontSizePx(txt.size, cell.h);
   const padding = fontSize * 0.6;
   const maxTextWidth = cell.w - padding * 2;
 
-  // Position at center of text (text center = cell.x + (txt.x%) * cell.w)
-  const textCenterX = cell.x + (txt.x / 100) * cell.w;
-  const textCenterY = cell.y + (txt.y / 100) * cell.h;
-
   const isLightText = txt.color !== 'black';
 
   return {
-    x: textCenterX,
-    y: textCenterY,
+    x: 0,
+    y: 0,
     offsetX: maxTextWidth / 2,
     offsetY: fontSize / 2,
     text: txt.content,
@@ -489,18 +509,15 @@ function getTextNodeConfig(txt: PageText, cell: CellRect): Record<string, unknow
     shadowOffsetX: 0,
     shadowOffsetY: Math.max(1, fontSize * 0.03),
     shadowEnabled: true,
-    // Store metadata for drag handling
-    name: `text-${txt.id}`,
+    listening: false,
   };
 }
 
+/** Background pill config (positioned relative to parent group at 0,0). */
 function getTextBgConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
   const fontSize = getTextFontSizePx(txt.size, cell.h);
   const padding = fontSize * 0.6;
   const maxTextWidth = cell.w - padding * 2;
-
-  const textCenterX = cell.x + (txt.x / 100) * cell.w;
-  const textCenterY = cell.y + (txt.y / 100) * cell.h;
 
   const barHeight = fontSize + padding * 2;
   const bgWidth = maxTextWidth + padding * 2;
@@ -508,8 +525,8 @@ function getTextBgConfig(txt: PageText, cell: CellRect): Record<string, unknown>
   const isLightText = txt.color !== 'black';
 
   return {
-    x: textCenterX - bgWidth / 2,
-    y: textCenterY - barHeight / 2,
+    x: -bgWidth / 2,
+    y: -barHeight / 2,
     width: bgWidth,
     height: barHeight,
     fill: isLightText ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)',
@@ -517,20 +534,18 @@ function getTextBgConfig(txt: PageText, cell: CellRect): Record<string, unknown>
   };
 }
 
+/** Selection indicator config (positioned relative to parent group at 0,0). */
 function getTextSelectionConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
   const fontSize = getTextFontSizePx(txt.size, cell.h);
   const padding = fontSize * 0.6;
   const maxTextWidth = cell.w - padding * 2;
 
-  const textCenterX = cell.x + (txt.x / 100) * cell.w;
-  const textCenterY = cell.y + (txt.y / 100) * cell.h;
-
   const barHeight = fontSize + padding * 2;
   const selW = maxTextWidth + padding * 2;
 
   return {
-    x: textCenterX - selW / 2,
-    y: textCenterY - barHeight / 2,
+    x: -selW / 2,
+    y: -barHeight / 2,
     width: selW,
     height: barHeight,
     stroke: '#3b82f6',
@@ -610,22 +625,40 @@ function getRotationIndicatorConfig(index: number, cell: CellRect): Record<strin
 // Badge configs (for reorder mode)
 // ---------------------------------------------------------------------------
 
-function getBadgeLabelConfig(cell: CellRect): Record<string, unknown> {
+function getBadgeBgConfig(text: string, cell: CellRect, bgColor: string): Record<string, unknown> {
+  const fontSize = Math.max(10, cell.h * 0.06);
+  const padX = fontSize * 0.8;
+  const padY = fontSize * 0.5;
+  const approxW = text.length * fontSize * 0.55 + padX * 2;
+  const badgeH = fontSize + padY * 2;
+
   return {
-    x: cell.x + cell.w / 2,
-    y: cell.y + cell.h / 2,
+    x: cell.x + cell.w / 2 - approxW / 2,
+    y: cell.y + cell.h / 2 - badgeH / 2,
+    width: approxW,
+    height: badgeH,
+    fill: bgColor,
+    cornerRadius: 4,
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    shadowBlur: 6,
+    shadowOffsetY: 2,
+    listening: false,
   };
 }
 
 function getBadgeTextConfig(text: string, cell: CellRect): Record<string, unknown> {
   const fontSize = Math.max(10, cell.h * 0.06);
   return {
+    x: cell.x,
+    y: cell.y + cell.h / 2 - fontSize / 2,
+    width: cell.w,
     text,
     fontSize,
     fontStyle: '600',
     fontFamily: 'sans-serif',
     fill: '#ffffff',
-    padding: fontSize * 0.5,
+    align: 'center',
+    listening: false,
   };
 }
 
@@ -672,34 +705,30 @@ function handleTextClick(cellIndex: number, txt: PageText, event: Konva.KonvaEve
   }
 }
 
+function handleTextDragMove(cellIndex: number, txt: PageText, event: Konva.KonvaEventObject<DragEvent>): void {
+  // Keep the selected text synced during drag
+  if (props.mode === 'text') {
+    editingIndex.value = cellIndex;
+    activeTextId.value = txt.id;
+    selectedTextId.value = txt.id;
+  }
+}
+
 function handleTextDragEnd(cellIndex: number, txt: PageText, event: Konva.KonvaEventObject<DragEvent>): void {
   const node = event.target;
   const cell = cells.value[cellIndex];
   if (!cell) return;
 
-  // Compute the known offsets from text params (avoids union type issue with getAttr)
-  const fontSize = getTextFontSizePx(txt.size, cell.h);
-  const padding = fontSize * 0.6;
-  const maxTextWidth = cell.w - padding * 2;
-  const textOffsetX = maxTextWidth / 2;
-  const textOffsetY = fontSize / 2;
-
-  // node.x()/y() is where Konva placed it after drag.
-  // Add offset back to get the text center position, then convert to cell %.
+  // The group's x/y is the text center position in local (cell group) space.
+  // Convert back to cell-percentage coordinates.
   const newX = Math.max(5, Math.min(95,
-    ((node.x() + textOffsetX - cell.x) / cell.w) * 100,
+    ((node.x() - cell.x) / cell.w) * 100,
   ));
   const newY = Math.max(5, Math.min(95,
-    ((node.y() + textOffsetY - cell.y) / cell.h) * 100,
+    ((node.y() - cell.y) / cell.h) * 100,
   ));
 
   emit('update:pageText', cellIndex, txt.id, { x: newX, y: newY });
-
-  // Reset node position to the computed position (reactive update will handle it)
-  node.x(cell.x + (newX / 100) * cell.w);
-  node.y(cell.y + (newY / 100) * cell.h);
-  node.offsetX(textOffsetX);
-  node.offsetY(textOffsetY);
 }
 
 function handleCellMouseEnter(index: number): void {

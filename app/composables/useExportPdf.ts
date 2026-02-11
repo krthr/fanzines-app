@@ -1,4 +1,3 @@
-import Konva from 'konva';
 import type { PhotoItem } from '~/composables/usePhotoStore';
 import type { PageText } from '~/composables/usePhotoStore';
 import type { PageSlot } from '~/composables/useFanzineLayout';
@@ -50,7 +49,13 @@ export function useExportPdf() {
 
     isExporting.value = true;
 
+    let container: HTMLDivElement | null = null;
+    let stage: InstanceType<typeof import('konva').default.Stage> | null = null;
+
     try {
+      // Dynamic import to avoid SSR crash (Konva requires browser APIs)
+      const Konva = (await import('konva')).default;
+
       // Load all images in parallel
       const images = await loadAllImages(photos);
 
@@ -68,13 +73,13 @@ export function useExportPdf() {
       }
 
       // Create an offscreen Konva stage at print resolution
-      const container = document.createElement('div');
+      container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       container.style.top = '-9999px';
       document.body.appendChild(container);
 
-      const stage = new Konva.Stage({
+      stage = new Konva.Stage({
         container,
         width: A4_WIDTH_PX,
         height: A4_HEIGHT_PX,
@@ -192,10 +197,6 @@ export function useExportPdf() {
         quality: 0.95,
       });
 
-      // Clean up the offscreen stage
-      stage.destroy();
-      document.body.removeChild(container);
-
       // Generate PDF
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({
@@ -215,6 +216,11 @@ export function useExportPdf() {
       pdf.save(filename);
     }
     finally {
+      // Clean up offscreen Konva resources
+      stage?.destroy();
+      if (container?.parentNode) {
+        document.body.removeChild(container);
+      }
       isExporting.value = false;
     }
   }
