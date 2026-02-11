@@ -13,7 +13,8 @@
             {{ $t('preview.printDescription') }}
           </p>
           <div class="overflow-hidden paper-shadow">
-            <FanzineGrid
+            <ZineCanvas
+              ref="exportCanvasRef"
               :photos="photos"
               :page-texts="pageTexts"
               :gap="gap"
@@ -30,7 +31,7 @@
           <p class="text-sm text-muted">
             {{ $t('preview.bookletDescription') }}
           </p>
-          <BookletPreview :photos="photos" :page-texts="pageTexts" />
+          <BookletCanvas :photos="photos" :page-texts="pageTexts" />
         </div>
       </template>
     </UTabs>
@@ -74,12 +75,15 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui';
 
+import type { Stage as KonvaStage } from 'konva/lib/Stage';
+
 const { t } = useI18n();
 const { $posthog } = useNuxtApp();
 const { photos, gap, pageTexts } = usePhotoStore();
-const { exportToPdf, isExporting } = useExportPdf();
+const { exportToPdf, isExporting } = useCanvasExport();
 const toast = useToast();
 
+const exportCanvasRef = ref<{ getStageNode: () => KonvaStage | null } | null>(null);
 const showTutorial = ref(false);
 const pdfGuides = ref(true);
 
@@ -97,6 +101,9 @@ const tabs = computed<TabsItem[]>(() => [
 ]);
 
 async function handleExport(): Promise<void> {
+  const stageNode = exportCanvasRef.value?.getStageNode();
+  if (!stageNode) return;
+
   const eventProps = {
     photo_count: photos.value.length,
     show_guides: pdfGuides.value,
@@ -104,9 +111,8 @@ async function handleExport(): Promise<void> {
   };
 
   try {
-    await exportToPdf(photos.value, gap.value, {
+    await exportToPdf(stageNode, gap.value, {
       showGuides: pdfGuides.value,
-      pageTexts: pageTexts.value,
     });
     $posthog()?.capture('fanzine_exported', eventProps);
     toast.add({

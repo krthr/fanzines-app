@@ -25,16 +25,16 @@ Migrate the fanzine-app rendering layer from HTML/CSS to Konva.js canvas via `vu
 ## Phase 1: Setup & Infrastructure
 
 ### 1.1 Install Dependencies
-- [ ] `yarn add konva vue-konva`
-- [ ] Keep `jspdf` (already installed, still needed for PDF wrapper + vector guides)
+- [x] `yarn add konva vue-konva`
+- [x] Keep `jspdf` (already installed, still needed for PDF wrapper + vector guides)
 
 ### 1.2 Create Client Plugin
-- [ ] Create `app/plugins/vue-konva.client.ts`
+- [x] Create `app/plugins/vue-konva.client.ts`
   - Register `VueKonva` with `nuxtApp.vueApp.use(VueKonva)`
   - `.client.ts` suffix ensures it only runs in the browser (Konva requires DOM)
 
 ### 1.3 Create `useKonvaGrid` Composable
-- [ ] Create `app/composables/useKonvaGrid.ts`
+- [x] Create `app/composables/useKonvaGrid.ts`
 - Pure computation layer (no canvas dependency -- just math)
 - Input: `stageWidth`, `stageHeight`, `gap`, `photoCount`
 - Output: Array of 8 cell descriptors + guide line coordinates
@@ -68,7 +68,7 @@ interface GridGuides {
 ## Phase 2: ZineCanvas Component (Main Interactive Canvas)
 
 ### 2.1 Create `ZineCanvas.vue`
-- [ ] Create `app/components/ZineCanvas.vue`
+- [x] Create `app/components/ZineCanvas.vue`
 - Wrapped in `<ClientOnly>` with a loading placeholder fallback
 - Responsive: use a wrapper `<div ref="container">` and compute stage dimensions
   from container width, maintaining 297:210 (A4 landscape) aspect ratio
@@ -123,14 +123,14 @@ interface ZineCanvasEmits {
 ```
 
 ### 2.4 Image Loading
-- [ ] Use `useImage()` from vue-konva for each photo URL
+- [x] Use `useImage()` from vue-konva for each photo URL
 - Track loaded state per image (show placeholder until loaded)
 - Compute crop rect for each image using `getCoverCrop(naturalWidth, naturalHeight, cellWidth, cellHeight)`
 - Re-compute crop when cell dimensions change (responsive resize)
 - Images are blob URLs (same origin) -- no CORS issues
 
 ### 2.5 Text Overlay Rendering
-- [ ] Each `PageText` renders as a `v-group` containing:
+- [x] Each `PageText` renders as a `v-group` containing:
   - `v-rect` (background pill, conditional on `showBg`)
   - `v-text` (the text content)
 - Position: convert percentage (0-100) to pixel coords within cell
@@ -151,7 +151,7 @@ interface ZineCanvasEmits {
 - Font preloading: call `document.fonts.ready` on mount, then `layer.batchDraw()`
 
 ### 2.6 Text Dragging (Text Mode)
-- [ ] Set `draggable: true` on text groups when `mode === 'text'` and `!readonly`
+- [x] Set `draggable: true` on text groups when `mode === 'text'` and `!readonly`
 - `dragBoundFunc` constrains to 5-95% of cell dimensions (converted to pixels)
 - On `@dragend`: convert pixel position back to percentage, emit `update:pageText`
 - Rotation handling: text nodes are children of the rotated cell group,
@@ -159,7 +159,7 @@ interface ZineCanvasEmits {
 - Cursor: `pointer` on hover in text mode
 
 ### 2.7 Text Content Editing (Hybrid HTML Overlay)
-- [ ] On double-click of a text node:
+- [x] On double-click of a text node:
   1. Get the text node's absolute position on screen via `node.getClientRect()` + stage container offset
   2. Create/show an HTML `<textarea>` absolutely positioned over the canvas
   3. Style the textarea to match: font family, font size, color, alignment, rotation
@@ -169,7 +169,7 @@ interface ZineCanvasEmits {
 - On click of empty cell area in text mode: emit `add:pageText`
 
 ### 2.8 Text Property Panel (HTML, Outside Canvas)
-- [ ] When a text node is selected (clicked in text mode), show a panel/toolbar
+- [x] When a text node is selected (clicked in text mode), show a panel/toolbar
 - Panel renders alongside the canvas (not inside it) using Nuxt UI components
 - Controls: font picker (4 buttons), size picker (S/M/L/XL), color picker (3 swatches),
   background toggle (USwitch), remove button
@@ -179,7 +179,7 @@ interface ZineCanvasEmits {
 - Panel positioned below or beside the canvas
 
 ### 2.9 Reorder Mode (Click-to-Swap)
-- [ ] First click on a cell: set `selectedIndex`, show selection highlight (stroke rect)
+- [x] First click on a cell: set `selectedIndex`, show selection highlight (stroke rect)
 - Second click on different cell: emit `reorder`, clear selection
 - Click same cell: deselect
 - Hover effect: adjust cell overlay opacity on mouseenter/mouseleave
@@ -188,21 +188,21 @@ interface ZineCanvasEmits {
 - Cursor: `pointer` on cells in reorder mode
 
 ### 2.10 Page Labels
-- [ ] Toggle via `showLabels` prop
+- [x] Toggle via `showLabels` prop
 - Each cell gets a `v-group` (label) with:
   - `v-rect` background (amber for rotated cells, white otherwise)
   - `v-text` with page role from i18n
   - Rotation indicator: small `v-text` with "(180deg)" for top-row cells
 
 ### 2.11 Fold/Cut Guides
-- [ ] Toggle via `showGuides` prop
+- [x] Toggle via `showGuides` prop
 - Rendered on a separate `v-layer` (so they can be toggled without redrawing content)
 - Fold lines: 4 `v-line` nodes with `dash: [6, 4]`, white/70 opacity
 - Cut line: `v-line` solid red, spanning middle half of horizontal center
 - Fold/Cut labels: `v-text` nodes
 
 ### 2.12 Expose Stage Ref for Export
-- [ ] Expose the `v-stage` ref via `defineExpose` so the export composable can call
+- [x] Expose the `v-stage` ref via `defineExpose` so the export composable can call
   `stageRef.getNode().toDataURL({ pixelRatio })` directly
 - This is the key integration point with Phase 4
 
@@ -211,7 +211,7 @@ interface ZineCanvasEmits {
 ## Phase 3: BookletCanvas Component
 
 ### 3.1 Create `BookletCanvas.vue`
-- [ ] Create `app/components/BookletCanvas.vue`
+- [x] Create `app/components/BookletCanvas.vue`
 - Read-only canvas showing the fanzine in booklet reading order as 2-page spreads
 - Wrapped in `<ClientOnly>`
 
@@ -262,7 +262,7 @@ interface BookletCanvasProps {
 ## Phase 4: Export Pipeline
 
 ### 4.1 Create `useCanvasExport.ts`
-- [ ] Create `app/composables/useCanvasExport.ts`
+- [x] Create `app/composables/useCanvasExport.ts`
 - Replaces `useExportPdf.ts`
 
 ### 4.2 Export Approach (Simplest: pixelRatio on Visible Stage)
@@ -313,20 +313,20 @@ export function useCanvasExport() {
 ```
 
 ### 4.3 Print Guides
-- [ ] Port `drawPrintGuides()` and `cropMarkLines()` from current `useExportPdf.ts`
+- [x] Port `drawPrintGuides()` and `cropMarkLines()` from current `useExportPdf.ts`
 - No logic changes needed -- these use jsPDF's native vector drawing API
 - Copy constants: DPI, A4 dimensions, guide styling values
 
 ### 4.4 Export Integration
-- [ ] `ZineCanvas` exposes stage ref via `defineExpose({ getStageNode })`
-- [ ] `FanzinePreview` calls `useCanvasExport().exportToPdf(stageNode, gap, options)`
-- [ ] Before export: temporarily hide non-print layers/elements:
+- [x] `ZineCanvas` exposes stage ref via `defineExpose({ getStageNode })`
+- [x] `FanzinePreview` calls `useCanvasExport().exportToPdf(stageNode, gap, options)`
+- [x] Before export: temporarily hide non-print layers/elements:
   - Selection highlights, hover overlays
   - Cell number overlays
   - Page labels (PDF guides draw their own labels via jsPDF)
   - Reorder/text mode indicators
-- [ ] After export: restore all hidden elements
-- [ ] Guide lines layer: keep visible if `showGuides` option is true
+- [x] After export: restore all hidden elements
+- [x] Guide lines layer: keep visible if `showGuides` option is true
   (they become part of the raster image; jsPDF guides add vector overlay on top)
 
 ---
@@ -334,41 +334,43 @@ export function useCanvasExport() {
 ## Phase 5: Integration & Wiring
 
 ### 5.1 Update `index.vue`
-- [ ] Replace `<FanzineGrid>` with `<ZineCanvas>` (wrapped in `<ClientOnly>`)
-- [ ] Same props and emits interface -- should be a near drop-in replacement
-- [ ] Add the text property panel alongside the canvas (conditional on text mode + selected text)
-- [ ] Wire up text property changes to `updatePageText` store action
+- [x] Replace `<FanzineGrid>` with `<ZineCanvas>` (wrapped in `<ClientOnly>`)
+- [x] Same props and emits interface -- should be a near drop-in replacement
+- [x] Add the text property panel alongside the canvas (conditional on text mode + selected text)
+- [x] Wire up text property changes to `updatePageText` store action
 
 ### 5.2 Update `FanzinePreview.vue`
-- [ ] Replace `<FanzineGrid readonly ...>` with `<ZineCanvas readonly ...>`
-- [ ] Replace `<BookletPreview>` with `<BookletCanvas>`
-- [ ] Update export call: use `useCanvasExport` instead of `useExportPdf`
-- [ ] Get stage ref from ZineCanvas for export
+- [x] Replace `<FanzineGrid readonly ...>` with `<ZineCanvas readonly ...>`
+- [x] Replace `<BookletPreview>` with `<BookletCanvas>`
+- [x] Update export call: use `useCanvasExport` instead of `useExportPdf`
+- [x] Get stage ref from ZineCanvas for export
 
 ### 5.3 Adapt `PageTextEditor.vue`
-- [ ] Keep as Nuxt UI component (not on canvas)
-- [ ] Adjust props/emits if the interface changes
-- [ ] Render as a floating panel or toolbar below the canvas
-  (UPopover anchoring to canvas elements is not straightforward)
-- [ ] Bind to the currently selected text node's properties
+- [x] Keep as Nuxt UI component (not on canvas)
+- [x] Adjust props/emits if the interface changes
+- [x] Render as a floating panel or toolbar below the canvas
+- [x] Bind to the currently selected text node's properties
 
 ### 5.4 Ensure Font Preloading
-- [ ] Fonts already configured in `nuxt.config.ts` via `@nuxt/fonts`
-- [ ] On canvas mount: `await document.fonts.ready` before initial render
-- [ ] After fonts load: `layer.batchDraw()` to re-render text with correct fonts
+- [x] Fonts already configured in `nuxt.config.ts` via `@nuxt/fonts`
+- [x] On canvas mount: `await document.fonts.ready` before initial render
+- [x] After fonts load: `layer.batchDraw()` to re-render text with correct fonts
 
 ---
 
 ## Phase 6: Cleanup
 
 ### 6.1 Delete Replaced Files
-- [ ] `app/components/FanzineGrid.vue` (replaced by ZineCanvas.vue)
-- [ ] `app/components/BookletPreview.vue` (replaced by BookletCanvas.vue)
-- [ ] `app/composables/useExportPdf.ts` (replaced by useCanvasExport.ts)
-- [ ] `app/composables/useDragText.ts` (drag logic now native in Konva)
+- [x] `app/components/FanzineGrid.vue` (replaced by ZineCanvas.vue)
+- [x] `app/components/BookletPreview.vue` (replaced by BookletCanvas.vue)
+- [x] `app/composables/useExportPdf.ts` (replaced by useCanvasExport.ts)
+- [x] `app/composables/useDragText.ts` (drag logic now native in Konva)
 
 ### 6.2 Verify All Flows
-- [ ] Upload 8 photos -> step 2
+- [x] Dev server compiles without errors
+- [x] TypeScript typecheck passes clean
+- [x] SSR renders without errors (curl test)
+- [ ] Upload 8 photos -> step 2 (manual browser test)
 - [ ] Reorder mode: click-to-swap works correctly
 - [ ] Text mode: add text, edit content (double-click), drag to reposition
 - [ ] Text mode: change font, size, color, background via property panel
@@ -380,8 +382,8 @@ export function useCanvasExport() {
 - [ ] Export tab: booklet tab shows BookletCanvas with spread navigation
 - [ ] PDF download: generates correct A4 landscape PDF
 - [ ] PDF: images are high-res (300 DPI equivalent)
-- [ ] PDF: text overlays render correctly (font, size, color, position, background)
-- [ ] PDF: vector guides render correctly (fold lines, cut line, crop marks, labels)
+- [ ] PDF: text overlays render correctly
+- [ ] PDF: vector guides render correctly
 - [ ] PDF: top-row cells are rotated 180 degrees
 - [ ] Responsive: canvas resizes with container
 - [ ] Dark mode: canvas wrapper has correct background
