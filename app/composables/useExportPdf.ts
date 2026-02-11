@@ -1,16 +1,21 @@
+import Konva from 'konva';
 import type { PhotoItem } from '~/composables/usePhotoStore';
 import type { PageText } from '~/composables/usePhotoStore';
 import type { PageSlot } from '~/composables/useFanzineLayout';
-import type { CropTransform } from '~/composables/useCanvasRenderer';
+import type { CropTransform } from '~/composables/useKonvaStage';
 import {
   A4_WIDTH_PX,
   A4_HEIGHT_PX,
-  renderGrid,
+  calcCellRects,
+  computeImageCoverConfig,
+  defaultCropTransform,
   loadAllImages,
   preloadFonts,
-  calcCellRects,
-  defaultCropTransform,
-} from '~/composables/useCanvasRenderer';
+  getTextFontSizePx,
+  getTextFillColor,
+  getKonvaFontFamily,
+  getTextFontStyle,
+} from '~/composables/useKonvaStage';
 
 // A4 landscape dimensions in mm (for jsPDF)
 const A4_WIDTH_MM = 297;
@@ -46,12 +51,6 @@ export function useExportPdf() {
     isExporting.value = true;
 
     try {
-      // Create offscreen canvas at exact print dimensions
-      const canvas = document.createElement('canvas');
-      canvas.width = A4_WIDTH_PX;
-      canvas.height = A4_HEIGHT_PX;
-      const ctx = canvas.getContext('2d')!;
-
       // Load all images in parallel
       const images = await loadAllImages(photos);
 
@@ -68,20 +67,134 @@ export function useExportPdf() {
         crops.push(cropTransforms?.[i] ?? defaultCropTransform());
       }
 
-      // Use the shared renderer -- single source of truth
-      renderGrid(ctx, A4_WIDTH_PX, A4_HEIGHT_PX, {
-        photos,
-        images,
-        layout: LAYOUT,
-        gap,
-        pageTexts: pageTexts ?? Array.from({ length: 8 }, () => []),
-        cropTransforms: crops,
-        showGuides: false, // We draw vector guides via jsPDF below
-        showLabels: false,
-        readonly: true,
-        interaction: null,
-        t: (key: string) => key, // Labels not needed on exported image
+      // Create an offscreen Konva stage at print resolution
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
+
+      const stage = new Konva.Stage({
+        container,
+        width: A4_WIDTH_PX,
+        height: A4_HEIGHT_PX,
       });
+
+      const layer = new Konva.Layer();
+      stage.add(layer);
+
+      // Background
+      layer.add(new Konva.Rect({
+        x: 0,
+        y: 0,
+        width: A4_WIDTH_PX,
+        height: A4_HEIGHT_PX,
+        fill: '#000000',
+      }));
+
+      // Calculate cell geometry
+      const cells = calcCellRects(A4_WIDTH_PX, A4_HEIGHT_PX, gap);
+
+      // Draw each photo into its cell
+      for (let i = 0; i < images.length && i < cells.length; i++) {
+        const cell = cells[i]!;
+        const slot = LAYOUT[i];
+        const rotated = slot?.rotated ?? false;
+        const crop = crops[i] ?? defaultCropTransform();
+        const img = images[i]!;
+
+        const coverConfig = computeImageCoverConfig(img, cell.w, cell.h, crop);
+
+        const group = new Konva.Group({
+          clipX: cell.x,
+          clipY: cell.y,
+          clipWidth: cell.w,
+          clipHeight: cell.h,
+        });
+
+        if (rotated) {
+          group.rotation(180);
+          group.offsetX(cell.x + cell.w / 2);
+          group.offsetY(cell.y + cell.h / 2);
+          group.x(cell.x + cell.w / 2);
+          group.y(cell.y + cell.h / 2);
+        }
+
+        group.add(new Konva.Image({
+          image: img,
+          x: cell.x,
+          y: cell.y,
+          width: coverConfig.width,
+          height: coverConfig.height,
+          crop: {
+            x: coverConfig.cropX,
+            y: coverConfig.cropY,
+            width: coverConfig.cropWidth,
+            height: coverConfig.cropHeight,
+          },
+        }));
+
+        // Draw text overlays for this cell
+        const cellTexts = pageTexts?.[i] ?? [];
+        for (const txt of cellTexts) {
+          if (!txt.content) continue;
+
+          const fontSize = getTextFontSizePx(txt.size, cell.h);
+          const padding = fontSize * 0.6;
+          const maxTextWidth = cell.w - padding * 2;
+          const textCenterX = cell.x + (txt.x / 100) * cell.w;
+          const textCenterY = cell.y + (txt.y / 100) * cell.h;
+          const isLightText = txt.color !== 'black';
+
+          // Background pill
+          if (txt.showBg) {
+            const barHeight = fontSize + padding * 2;
+            const bgWidth = maxTextWidth + padding * 2;
+            group.add(new Konva.Rect({
+              x: textCenterX - bgWidth / 2,
+              y: textCenterY - barHeight / 2,
+              width: bgWidth,
+              height: barHeight,
+              fill: isLightText ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)',
+            }));
+          }
+
+          // Text node
+          group.add(new Konva.Text({
+            x: textCenterX,
+            y: textCenterY,
+            offsetX: maxTextWidth / 2,
+            offsetY: fontSize / 2,
+            text: txt.content,
+            fontSize,
+            fontFamily: getKonvaFontFamily(txt.font),
+            fontStyle: getTextFontStyle(txt.size),
+            fill: getTextFillColor(txt.color),
+            width: maxTextWidth,
+            align: 'center',
+            verticalAlign: 'middle',
+            shadowColor: isLightText ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.6)',
+            shadowBlur: Math.max(2, fontSize * 0.1),
+            shadowOffsetX: 0,
+            shadowOffsetY: Math.max(1, fontSize * 0.03),
+            shadowEnabled: true,
+          }));
+        }
+
+        layer.add(group);
+      }
+
+      layer.draw();
+
+      // Export the Konva stage as a data URL
+      const imgData = stage.toDataURL({
+        mimeType: 'image/jpeg',
+        quality: 0.95,
+      });
+
+      // Clean up the offscreen stage
+      stage.destroy();
+      document.body.removeChild(container);
 
       // Generate PDF
       const { jsPDF } = await import('jspdf');
@@ -92,7 +205,6 @@ export function useExportPdf() {
       });
 
       // Add the photo grid as a full-page image
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
 
       // Draw print guides on top of the image (vector, crisp at any zoom)

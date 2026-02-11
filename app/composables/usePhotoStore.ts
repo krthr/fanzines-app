@@ -1,6 +1,6 @@
 import { processImages } from '~/composables/useImageProcessor';
-import type { CropTransform } from '~/composables/useCanvasRenderer';
-import { defaultCropTransform } from '~/composables/useCanvasRenderer';
+import type { CropTransform } from '~/composables/useKonvaStage';
+import { defaultCropTransform } from '~/composables/useKonvaStage';
 
 export interface PhotoItem {
   id: string;

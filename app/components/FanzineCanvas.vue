@@ -3,16 +3,221 @@
     ref="containerEl"
     class="fanzine-canvas-container relative"
   >
-    <canvas
-      ref="canvasEl"
-      class="w-full h-auto block"
-      :style="{ aspectRatio: '297 / 210' }"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
-      @wheel.prevent="onWheel"
-    />
+    <div ref="stageWrapperEl" :style="{ aspectRatio: '297 / 210', width: '100%' }">
+      <v-stage
+        v-if="stageSize.width > 0"
+        ref="stageRef"
+        :config="stageSize"
+        @wheel="onWheel"
+      >
+        <!-- Background layer -->
+        <v-layer>
+          <v-rect :config="{ x: 0, y: 0, width: stageSize.width, height: stageSize.height, fill: '#000000' }" />
+        </v-layer>
+
+        <!-- Photos layer -->
+        <v-layer ref="photosLayerRef">
+          <template v-for="(cell, i) in cells" :key="'cell-' + i">
+            <!-- Cell group: clipped to cell bounds, optionally rotated 180° -->
+            <v-group
+              :config="getCellGroupConfig(i, cell)"
+              @click="handleCellClick(i)"
+              @tap="handleCellClick(i)"
+              @mouseenter="handleCellMouseEnter(i)"
+              @mouseleave="handleCellMouseLeave"
+            >
+              <!-- Photo image with crop (object-fit: cover) -->
+              <v-image
+                v-if="loadedImages[i]"
+                :config="getImageConfig(i, cell)"
+              />
+
+              <!-- Text overlays for this cell (rendered in cell-local space) -->
+              <template v-for="(txt, j) in (pageTexts[i] ?? [])" :key="txt.id">
+                <!-- Background pill -->
+                <v-rect
+                  v-if="txt.showBg && txt.content"
+                  :config="getTextBgConfig(txt, cell)"
+                />
+                <!-- Text node (draggable in text mode) -->
+                <v-text
+                  v-if="txt.content"
+                  :config="getTextNodeConfig(txt, cell)"
+                  :draggable="mode === 'text' && !readonly"
+                  @dragend="handleTextDragEnd(i, txt, $event)"
+                  @click="handleTextClick(i, txt, $event)"
+                  @tap="handleTextClick(i, txt, $event)"
+                />
+                <!-- Selection indicator for active text -->
+                <v-rect
+                  v-if="txt.content && selectedTextId === txt.id"
+                  :config="getTextSelectionConfig(txt, cell)"
+                />
+              </template>
+            </v-group>
+          </template>
+        </v-layer>
+
+        <!-- Guides layer -->
+        <v-layer v-if="showGuides">
+          <!-- Horizontal center fold (dashed white) -->
+          <v-line :config="{
+            points: [0, foldYCenter, stageSize.width, foldYCenter],
+            stroke: 'rgba(255, 255, 255, 0.7)',
+            strokeWidth: guideLineWidth,
+            dash: [dashLength, dashLength],
+          }" />
+
+          <!-- Vertical fold lines at 1/4, 1/2, 3/4 -->
+          <v-line
+            v-for="frac in [0.25, 0.5, 0.75]"
+            :key="'vfold-' + frac"
+            :config="{
+              points: [stageSize.width * frac, 0, stageSize.width * frac, stageSize.height],
+              stroke: 'rgba(255, 255, 255, 0.5)',
+              strokeWidth: guideLineWidth,
+              dash: [dashLength, dashLength],
+            }"
+          />
+
+          <!-- Cut line (solid red, center horizontal, middle half) -->
+          <v-line :config="{
+            points: [stageSize.width * 0.25, foldYCenter, stageSize.width * 0.75, foldYCenter],
+            stroke: 'rgba(220, 80, 80, 0.9)',
+            strokeWidth: guideLineWidth * 1.5,
+          }" />
+
+          <!-- Scissors "X" at cut start -->
+          <v-line :config="{
+            points: [
+              stageSize.width * 0.25 - scissorsSize, foldYCenter - scissorsSize,
+              stageSize.width * 0.25 + scissorsSize, foldYCenter + scissorsSize,
+            ],
+            stroke: 'rgba(220, 80, 80, 0.9)',
+            strokeWidth: guideLineWidth,
+          }" />
+          <v-line :config="{
+            points: [
+              stageSize.width * 0.25 - scissorsSize, foldYCenter + scissorsSize,
+              stageSize.width * 0.25 + scissorsSize, foldYCenter - scissorsSize,
+            ],
+            stroke: 'rgba(220, 80, 80, 0.9)',
+            strokeWidth: guideLineWidth,
+          }" />
+        </v-layer>
+
+        <!-- Labels layer -->
+        <v-layer v-if="showLabels">
+          <template v-for="(cell, i) in cells" :key="'label-' + i">
+            <!-- Label background pill -->
+            <v-rect :config="getLabelBgConfig(i, cell)" />
+            <!-- Label text -->
+            <v-text :config="getLabelTextConfig(i, cell)" />
+            <!-- Rotation indicator for top-row cells -->
+            <v-text
+              v-if="layout.LAYOUT[i]?.rotated"
+              :config="getRotationIndicatorConfig(i, cell)"
+            />
+          </template>
+        </v-layer>
+
+        <!-- Interaction overlay layer -->
+        <v-layer v-if="!readonly">
+          <template v-for="(cell, i) in cells" :key="'interaction-' + i">
+            <!-- Reorder mode overlays -->
+            <template v-if="mode === 'reorder'">
+              <!-- Selected cell overlay -->
+              <v-rect
+                v-if="selectedIndex === i"
+                :config="{
+                  x: cell.x,
+                  y: cell.y,
+                  width: cell.w,
+                  height: cell.h,
+                  fill: 'rgba(225, 29, 72, 0.2)',
+                  stroke: '#e11d48',
+                  strokeWidth: Math.max(2, cell.w * 0.008),
+                }"
+              />
+
+              <!-- Hover target overlay (when swap is pending) -->
+              <v-rect
+                v-if="hoverIndex === i && selectedIndex !== null && selectedIndex !== i"
+                :config="{
+                  x: cell.x,
+                  y: cell.y,
+                  width: cell.w,
+                  height: cell.h,
+                  fill: 'rgba(0, 0, 0, 0.3)',
+                }"
+              />
+
+              <!-- Selected badge: "Swap" -->
+              <v-label
+                v-if="selectedIndex === i"
+                :config="getBadgeLabelConfig(cell)"
+              >
+                <v-tag :config="{ fill: '#e11d48', cornerRadius: 4 }" />
+                <v-text :config="getBadgeTextConfig(t('grid.swap'), cell)" />
+              </v-label>
+
+              <!-- Hover badge: "Place Here" -->
+              <v-label
+                v-if="hoverIndex === i && selectedIndex !== null && selectedIndex !== i"
+                :config="getBadgeLabelConfig(cell)"
+              >
+                <v-tag :config="{ fill: '#52525b', cornerRadius: 4 }" />
+                <v-text :config="getBadgeTextConfig(t('grid.placeHere'), cell)" />
+              </v-label>
+
+              <!-- Cell number at bottom (gradient + number) -->
+              <v-rect
+                v-if="selectedIndex !== i"
+                :config="{
+                  x: cell.x,
+                  y: cell.y + cell.h * 0.85,
+                  width: cell.w,
+                  height: cell.h * 0.15,
+                  fillLinearGradientStartPoint: { x: 0, y: 0 },
+                  fillLinearGradientEndPoint: { x: 0, y: cell.h * 0.15 },
+                  fillLinearGradientColorStops: [0, 'rgba(0,0,0,0)', 1, 'rgba(0,0,0,0.6)'],
+                  listening: false,
+                }"
+              />
+              <v-text
+                v-if="selectedIndex !== i"
+                :config="{
+                  x: cell.x,
+                  y: cell.y + cell.h - Math.max(8, cell.h * 0.04) * 1.5,
+                  width: cell.w,
+                  text: String(i + 1),
+                  fontSize: Math.max(8, cell.h * 0.04),
+                  fontStyle: '500',
+                  fill: '#ffffff',
+                  align: 'center',
+                  listening: false,
+                }"
+              />
+            </template>
+
+            <!-- Text mode: editing cell highlight -->
+            <v-rect
+              v-if="mode === 'text' && editingIndex === i"
+              :config="{
+                x: cell.x,
+                y: cell.y,
+                width: cell.w,
+                height: cell.h,
+                fill: 'rgba(59, 130, 246, 0.15)',
+                stroke: '#3b82f6',
+                strokeWidth: Math.max(2, cell.w * 0.008),
+                listening: false,
+              }"
+            />
+          </template>
+        </v-layer>
+      </v-stage>
+    </div>
 
     <!-- DOM overlay: PageTextEditor popover (canvas can't render form inputs) -->
     <UPopover
@@ -43,22 +248,20 @@
 </template>
 
 <script setup lang="ts">
+import type Konva from 'konva';
 import type { PhotoItem, PageText } from '~/composables/usePhotoStore';
-import type {
-  CropTransform,
-  InteractionState,
-  CellRect,
-  HitTestResult,
-  RenderOptions,
-} from '~/composables/useCanvasRenderer';
+import type { CropTransform, CellRect } from '~/composables/useKonvaStage';
 import {
-  renderGrid,
   calcCellRects,
-  hitTest,
+  computeImageCoverConfig,
+  defaultCropTransform,
   loadAllImages,
   preloadFonts,
-  defaultCropTransform,
-} from '~/composables/useCanvasRenderer';
+  getTextFontSizePx,
+  getTextFillColor,
+  getKonvaFontFamily,
+  getTextFontStyle,
+} from '~/composables/useKonvaStage';
 
 const MAX_TEXTS_PER_PAGE = 3;
 
@@ -95,11 +298,20 @@ const layout = useFanzineLayout();
 
 // Refs
 const containerEl = ref<HTMLDivElement | null>(null);
-const canvasEl = ref<HTMLCanvasElement | null>(null);
+const stageWrapperEl = ref<HTMLDivElement | null>(null);
+const stageRef = ref<{ getNode: () => Konva.Stage } | null>(null);
+const photosLayerRef = ref<{ getNode: () => Konva.Layer } | null>(null);
+
+// Expose the stage ref so parent components (like FanzinePreview) can access it for export
+defineExpose({ stageRef });
+
+// Stage sizing
+const stageSize = reactive({ width: 0, height: 0 });
 
 // Loaded images cache
-const loadedImages = shallowRef<HTMLImageElement[]>([]);
+const loadedImages = shallowRef<(HTMLImageElement | null)[]>([]);
 const imageUrlsLoaded = ref<string[]>([]);
+let isLoadingAssets = false;
 
 // Interaction state
 const selectedIndex = ref<number | null>(null);
@@ -108,31 +320,41 @@ const editingIndex = ref<number | null>(null);
 const activeTextId = ref<string | null>(null);
 const selectedTextId = ref<string | null>(null);
 
-// Cached cell rects (updated after each render)
-const cellRects = shallowRef<CellRect[]>([]);
+// ---------------------------------------------------------------------------
+// Cell geometry (computed from stage size + gap)
+// ---------------------------------------------------------------------------
 
-// Drag state
-const isDragging = ref(false);
-const dragType = ref<'text' | 'pan' | null>(null);
-const dragStartPointer = ref<{ x: number; y: number }>({ x: 0, y: 0 });
-const dragStartValue = ref<{ x: number; y: number }>({ x: 0, y: 0 });
-const dragCellIndex = ref<number>(-1);
-const dragTextId = ref<string | null>(null);
-
-// Animation frame handle
-let rafId: number | null = null;
-
-// Track whether an async image/font load is in progress to avoid concurrent loads
-let isLoadingAssets = false;
+const cells = computed<CellRect[]>(() => {
+  if (stageSize.width <= 0 || stageSize.height <= 0) return [];
+  return calcCellRects(stageSize.width, stageSize.height, props.gap);
+});
 
 // ---------------------------------------------------------------------------
-// Image loading (async, triggers synchronous render when done)
+// Guide overlay computed values
+// ---------------------------------------------------------------------------
+
+const gapPx = computed(() => {
+  if (stageSize.width <= 0) return 0;
+  return Math.round((props.gap / 900) * stageSize.width);
+});
+
+const foldYCenter = computed(() => {
+  const c = cells.value[0];
+  if (!c) return stageSize.height / 2;
+  return c.h + gapPx.value / 2;
+});
+
+const guideLineWidth = computed(() => Math.max(1, stageSize.width * 0.0006));
+const dashLength = computed(() => stageSize.width * 0.005);
+const scissorsSize = computed(() => stageSize.width * 0.005);
+
+// ---------------------------------------------------------------------------
+// Image loading
 // ---------------------------------------------------------------------------
 
 async function ensureImagesLoaded(): Promise<void> {
   const urls = props.photos.map(p => p.url);
 
-  // Skip if same URLs already loaded
   if (
     urls.length === imageUrlsLoaded.value.length
     && urls.every((u, i) => u === imageUrlsLoaded.value[i])
@@ -140,17 +362,14 @@ async function ensureImagesLoaded(): Promise<void> {
     return;
   }
 
-  if (isLoadingAssets) return; // Avoid concurrent loads
+  if (isLoadingAssets) return;
   isLoadingAssets = true;
 
   try {
-    // Snapshot the photos before the await -- props may change during load
     const photosSnapshot = [...props.photos];
     const urlsSnapshot = photosSnapshot.map(p => p.url);
-
     const images = await loadAllImages(photosSnapshot);
 
-    // Verify photos haven't changed during the async load
     const currentUrls = props.photos.map(p => p.url);
     if (
       urlsSnapshot.length === currentUrls.length
@@ -158,300 +377,370 @@ async function ensureImagesLoaded(): Promise<void> {
     ) {
       loadedImages.value = images;
       imageUrlsLoaded.value = urlsSnapshot;
-      scheduleRender(); // Trigger a synchronous render now that images are ready
     } else {
-      // Photos changed during load -- retry
       isLoadingAssets = false;
       ensureImagesLoaded();
       return;
     }
   } catch {
-    // Image load failed -- silently ignore, canvas will show black cells
+    // Silently ignore
   } finally {
     isLoadingAssets = false;
   }
 }
 
 async function ensureFontsLoaded(): Promise<void> {
-  const canvas = canvasEl.value;
-  if (!canvas) return;
-
   const hasText = props.pageTexts.flat().some(pt => pt.content);
   if (!hasText) return;
 
   try {
-    const tempCells = calcCellRects(canvas.width, canvas.height, props.gap);
-    const sampleH = tempCells[0]?.h ?? 300;
-    // Snapshot pageTexts before the await
+    const sampleH = cells.value[0]?.h ?? 300;
     const pageTextsSnapshot = props.pageTexts.map(arr => [...arr]);
     await preloadFonts(pageTextsSnapshot, sampleH);
-    scheduleRender(); // Re-render after fonts are ready
   } catch {
-    // Font load failed -- fall back to default fonts
+    // Font load failed
   }
 }
 
 // ---------------------------------------------------------------------------
-// Canvas sizing (retina-aware via ResizeObserver)
+// Cell group config (clip + rotation)
 // ---------------------------------------------------------------------------
 
-let resizeObserver: ResizeObserver | null = null;
+function getCellGroupConfig(index: number, cell: CellRect): Record<string, unknown> {
+  const slot = layout.LAYOUT[index];
+  const rotated = slot?.rotated ?? false;
 
-function updateCanvasSize(): void {
-  const canvas = canvasEl.value;
-  const container = containerEl.value;
-  if (!canvas || !container) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  const rect = container.getBoundingClientRect();
-  const w = Math.round(rect.width * dpr);
-  const h = Math.round(rect.width * (210 / 297) * dpr); // A4 aspect ratio
-
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-    scheduleRender();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Render scheduling (fully synchronous render, no awaits)
-// ---------------------------------------------------------------------------
-
-function scheduleRender(): void {
-  if (rafId !== null) return;
-  rafId = requestAnimationFrame(() => {
-    rafId = null;
-    renderSync();
-  });
-}
-
-/**
- * Synchronous render -- reads current props and draws to canvas immediately.
- * No awaits, no race conditions. If images or fonts aren't loaded yet,
- * the canvas simply shows what it can (black cells for missing images).
- */
-function renderSync(): void {
-  const canvas = canvasEl.value;
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  // If images are not loaded yet, kick off async load (it will scheduleRender when done)
-  if (loadedImages.value.length === 0 && props.photos.length > 0) {
-    ensureImagesLoaded();
-  }
-
-  const interaction: InteractionState | null = props.readonly
-    ? null
-    : {
-        selectedIndex: selectedIndex.value,
-        hoverIndex: hoverIndex.value,
-        selectedTextId: selectedTextId.value,
-        editingIndex: editingIndex.value,
-        mode: props.mode,
-      };
-
-  // Build crop transforms (fill with defaults if not provided)
-  const crops: CropTransform[] = [];
-  for (let i = 0; i < 8; i++) {
-    crops.push(props.cropTransforms[i] ?? defaultCropTransform());
-  }
-
-  const renderOpts: RenderOptions = {
-    photos: props.photos,
-    images: loadedImages.value,
-    layout: layout.LAYOUT,
-    gap: props.gap,
-    pageTexts: props.pageTexts,
-    cropTransforms: crops,
-    showGuides: props.showGuides,
-    showLabels: props.showLabels,
-    readonly: props.readonly,
-    interaction,
-    t,
+  const config: Record<string, unknown> = {
+    clipX: cell.x,
+    clipY: cell.y,
+    clipWidth: cell.w,
+    clipHeight: cell.h,
   };
 
-  cellRects.value = renderGrid(ctx, canvas.width, canvas.height, renderOpts);
+  if (rotated) {
+    // Rotate 180° around the cell center
+    config.rotation = 180;
+    config.offsetX = cell.x + cell.w / 2;
+    config.offsetY = cell.y + cell.h / 2;
+    config.x = cell.x + cell.w / 2;
+    config.y = cell.y + cell.h / 2;
+  }
+
+  return config;
 }
 
 // ---------------------------------------------------------------------------
-// Pointer event helpers
+// Image config (crop = object-fit: cover)
 // ---------------------------------------------------------------------------
 
-/** Convert a pointer event to canvas-space coordinates. */
-function toCanvasCoords(event: PointerEvent): { x: number; y: number } {
-  const canvas = canvasEl.value;
-  if (!canvas) return { x: 0, y: 0 };
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
+function getImageConfig(index: number, cell: CellRect): Record<string, unknown> {
+  const img = loadedImages.value[index];
+  if (!img) return {};
+
+  const crop = props.cropTransforms[index] ?? defaultCropTransform();
+  const coverConfig = computeImageCoverConfig(img, cell.w, cell.h, crop);
+
   return {
-    x: (event.clientX - rect.left) * scaleX,
-    y: (event.clientY - rect.top) * scaleY,
+    image: img,
+    x: cell.x,
+    y: cell.y,
+    width: coverConfig.width,
+    height: coverConfig.height,
+    crop: {
+      x: coverConfig.cropX,
+      y: coverConfig.cropY,
+      width: coverConfig.cropWidth,
+      height: coverConfig.cropHeight,
+    },
+    listening: false,
   };
 }
 
-function performHitTest(event: PointerEvent): HitTestResult {
-  const canvas = canvasEl.value;
-  if (!canvas) return { type: 'empty', cellIndex: -1, textId: null, cellX: 0, cellY: 0 };
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return { type: 'empty', cellIndex: -1, textId: null, cellX: 0, cellY: 0 };
+// ---------------------------------------------------------------------------
+// Text overlay configs
+// ---------------------------------------------------------------------------
 
-  const { x, y } = toCanvasCoords(event);
-  return hitTest(x, y, cellRects.value, layout.LAYOUT, props.pageTexts, ctx);
+function getTextNodeConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
+  const fontSize = getTextFontSizePx(txt.size, cell.h);
+  const padding = fontSize * 0.6;
+  const maxTextWidth = cell.w - padding * 2;
+
+  // Position at center of text (text center = cell.x + (txt.x%) * cell.w)
+  const textCenterX = cell.x + (txt.x / 100) * cell.w;
+  const textCenterY = cell.y + (txt.y / 100) * cell.h;
+
+  const isLightText = txt.color !== 'black';
+
+  return {
+    x: textCenterX,
+    y: textCenterY,
+    offsetX: maxTextWidth / 2,
+    offsetY: fontSize / 2,
+    text: txt.content,
+    fontSize,
+    fontFamily: getKonvaFontFamily(txt.font),
+    fontStyle: getTextFontStyle(txt.size),
+    fill: getTextFillColor(txt.color),
+    width: maxTextWidth,
+    align: 'center',
+    verticalAlign: 'middle',
+    shadowColor: isLightText ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.6)',
+    shadowBlur: Math.max(2, fontSize * 0.1),
+    shadowOffsetX: 0,
+    shadowOffsetY: Math.max(1, fontSize * 0.03),
+    shadowEnabled: true,
+    // Store metadata for drag handling
+    name: `text-${txt.id}`,
+  };
+}
+
+function getTextBgConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
+  const fontSize = getTextFontSizePx(txt.size, cell.h);
+  const padding = fontSize * 0.6;
+  const maxTextWidth = cell.w - padding * 2;
+
+  const textCenterX = cell.x + (txt.x / 100) * cell.w;
+  const textCenterY = cell.y + (txt.y / 100) * cell.h;
+
+  const barHeight = fontSize + padding * 2;
+  const bgWidth = maxTextWidth + padding * 2;
+
+  const isLightText = txt.color !== 'black';
+
+  return {
+    x: textCenterX - bgWidth / 2,
+    y: textCenterY - barHeight / 2,
+    width: bgWidth,
+    height: barHeight,
+    fill: isLightText ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)',
+    listening: false,
+  };
+}
+
+function getTextSelectionConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
+  const fontSize = getTextFontSizePx(txt.size, cell.h);
+  const padding = fontSize * 0.6;
+  const maxTextWidth = cell.w - padding * 2;
+
+  const textCenterX = cell.x + (txt.x / 100) * cell.w;
+  const textCenterY = cell.y + (txt.y / 100) * cell.h;
+
+  const barHeight = fontSize + padding * 2;
+  const selW = maxTextWidth + padding * 2;
+
+  return {
+    x: textCenterX - selW / 2,
+    y: textCenterY - barHeight / 2,
+    width: selW,
+    height: barHeight,
+    stroke: '#3b82f6',
+    strokeWidth: Math.max(1, fontSize * 0.06),
+    dash: [4, 3],
+    listening: false,
+  };
 }
 
 // ---------------------------------------------------------------------------
-// Pointer event handlers
+// Label configs
 // ---------------------------------------------------------------------------
 
-function onPointerDown(event: PointerEvent): void {
+function getLabelBgConfig(index: number, cell: CellRect): Record<string, unknown> {
+  const slot = layout.LAYOUT[index];
+  const rotated = slot?.rotated ?? false;
+  const fontSize = Math.max(8, cell.h * 0.045);
+  const label = t(slot?.labelKey ?? '');
+  const padX = fontSize * 0.6;
+  const padY = fontSize * 0.4;
+
+  // Approximate text width (roughly 0.6 * fontSize per char)
+  const approxTextW = label.length * fontSize * 0.55;
+  const bgW = approxTextW + padX * 2;
+  const bgH = fontSize + padY * 2;
+
+  return {
+    x: cell.x + cell.w / 2 - bgW / 2,
+    y: cell.y + cell.h / 2 - bgH / 2,
+    width: bgW,
+    height: bgH,
+    fill: rotated ? 'rgba(245, 158, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+    listening: false,
+  };
+}
+
+function getLabelTextConfig(index: number, cell: CellRect): Record<string, unknown> {
+  const slot = layout.LAYOUT[index];
+  const rotated = slot?.rotated ?? false;
+  const fontSize = Math.max(8, cell.h * 0.045);
+  const label = t(slot?.labelKey ?? '');
+
+  // Use width of cell for centering
+  return {
+    x: cell.x,
+    y: cell.y + cell.h / 2 - fontSize / 2,
+    width: cell.w,
+    text: label,
+    fontSize,
+    fontStyle: '600',
+    fontFamily: 'sans-serif',
+    fill: rotated ? '#ffffff' : '#18181b',
+    align: 'center',
+    listening: false,
+  };
+}
+
+function getRotationIndicatorConfig(index: number, cell: CellRect): Record<string, unknown> {
+  const fontSize = Math.max(8, cell.h * 0.045);
+  const smallFont = Math.max(6, fontSize * 0.65);
+  const bgH = fontSize + fontSize * 0.4 * 2;
+
+  return {
+    x: cell.x,
+    y: cell.y + cell.h / 2 + bgH / 2,
+    width: cell.w,
+    text: '\u21BB 180\u00B0',
+    fontSize: smallFont,
+    fontFamily: 'sans-serif',
+    fill: 'rgba(252, 211, 77, 0.9)',
+    align: 'center',
+    listening: false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Badge configs (for reorder mode)
+// ---------------------------------------------------------------------------
+
+function getBadgeLabelConfig(cell: CellRect): Record<string, unknown> {
+  return {
+    x: cell.x + cell.w / 2,
+    y: cell.y + cell.h / 2,
+  };
+}
+
+function getBadgeTextConfig(text: string, cell: CellRect): Record<string, unknown> {
+  const fontSize = Math.max(10, cell.h * 0.06);
+  return {
+    text,
+    fontSize,
+    fontStyle: '600',
+    fontFamily: 'sans-serif',
+    fill: '#ffffff',
+    padding: fontSize * 0.5,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Event handlers
+// ---------------------------------------------------------------------------
+
+function handleCellClick(index: number): void {
   if (props.readonly) return;
 
-  const hit = performHitTest(event);
-  const { x, y } = toCanvasCoords(event);
-
   if (props.mode === 'reorder') {
-    if (hit.type === 'cell' || hit.type === 'text') {
-      if (selectedIndex.value === null) {
-        selectedIndex.value = hit.cellIndex;
-      } else if (selectedIndex.value === hit.cellIndex) {
-        selectedIndex.value = null;
-      } else {
-        emit('reorder', selectedIndex.value, hit.cellIndex);
-        selectedIndex.value = null;
-      }
-      scheduleRender();
+    if (selectedIndex.value === null) {
+      selectedIndex.value = index;
+    } else if (selectedIndex.value === index) {
+      selectedIndex.value = null;
+    } else {
+      emit('reorder', selectedIndex.value, index);
+      selectedIndex.value = null;
     }
   }
 
   if (props.mode === 'text') {
-    if (hit.type === 'text' && hit.textId) {
-      // Start dragging text
-      isDragging.value = true;
-      dragType.value = 'text';
-      dragCellIndex.value = hit.cellIndex;
-      dragTextId.value = hit.textId;
-      dragStartPointer.value = { x, y };
-
-      // Find current text position
-      const text = props.pageTexts[hit.cellIndex]?.find(t => t.id === hit.textId);
-      if (text) {
-        dragStartValue.value = { x: text.x, y: text.y };
-      }
-
-      selectedTextId.value = hit.textId;
-      activeTextId.value = hit.textId;
-      editingIndex.value = hit.cellIndex;
-
-      // Capture pointer for smooth dragging
-      canvasEl.value?.setPointerCapture(event.pointerId);
-
-      scheduleRender();
-    } else if (hit.type === 'cell') {
-      // Open text editor for this cell
-      if (editingIndex.value === hit.cellIndex) {
-        closeTextEditor();
-      } else {
-        editingIndex.value = hit.cellIndex;
-        const texts = props.pageTexts[hit.cellIndex] ?? [];
-        activeTextId.value = texts.length > 0 ? texts[0]!.id : null;
-        selectedTextId.value = null;
-      }
-      scheduleRender();
+    if (editingIndex.value === index) {
+      closeTextEditor();
+    } else {
+      editingIndex.value = index;
+      const texts = props.pageTexts[index] ?? [];
+      activeTextId.value = texts.length > 0 ? texts[0]!.id : null;
+      selectedTextId.value = null;
     }
   }
 }
 
-function onPointerMove(event: PointerEvent): void {
+function handleTextClick(cellIndex: number, txt: PageText, event: Konva.KonvaEventObject<MouseEvent | TouchEvent>): void {
+  // Stop propagation so the cell click doesn't fire
+  event.cancelBubble = true;
+
   if (props.readonly) return;
 
-  const { x, y } = toCanvasCoords(event);
-
-  if (isDragging.value && dragType.value === 'text') {
-    // Dragging a text overlay
-    const cell = cellRects.value[dragCellIndex.value];
-    if (!cell) return;
-
-    const slot = layout.LAYOUT[dragCellIndex.value];
-    const rotated = slot?.rotated ?? false;
-
-    let deltaX = x - dragStartPointer.value.x;
-    let deltaY = y - dragStartPointer.value.y;
-
-    // Invert for rotated cells
-    if (rotated) {
-      deltaX = -deltaX;
-      deltaY = -deltaY;
-    }
-
-    const pctX = (deltaX / cell.w) * 100;
-    const pctY = (deltaY / cell.h) * 100;
-
-    const newX = Math.max(5, Math.min(95, dragStartValue.value.x + pctX));
-    const newY = Math.max(5, Math.min(95, dragStartValue.value.y + pctY));
-
-    if (dragTextId.value) {
-      emit('update:pageText', dragCellIndex.value, dragTextId.value, { x: newX, y: newY });
-    }
-    return;
-  }
-
-  // Hover tracking for reorder mode
-  if (props.mode === 'reorder' && selectedIndex.value !== null) {
-    const hit = performHitTest(event);
-    const newHover = (hit.type === 'cell' || hit.type === 'text') ? hit.cellIndex : null;
-    if (newHover !== hoverIndex.value) {
-      hoverIndex.value = newHover;
-      scheduleRender();
-    }
+  if (props.mode === 'text') {
+    editingIndex.value = cellIndex;
+    activeTextId.value = txt.id;
+    selectedTextId.value = txt.id;
   }
 }
 
-function onPointerUp(event: PointerEvent): void {
-  if (isDragging.value) {
-    canvasEl.value?.releasePointerCapture(event.pointerId);
-    isDragging.value = false;
-    dragType.value = null;
-    // Keep selectedTextId so the selection indicator stays visible
-    // while the text editor popover is open
-    scheduleRender();
+function handleTextDragEnd(cellIndex: number, txt: PageText, event: Konva.KonvaEventObject<DragEvent>): void {
+  const node = event.target;
+  const cell = cells.value[cellIndex];
+  if (!cell) return;
+
+  // Compute the known offsets from text params (avoids union type issue with getAttr)
+  const fontSize = getTextFontSizePx(txt.size, cell.h);
+  const padding = fontSize * 0.6;
+  const maxTextWidth = cell.w - padding * 2;
+  const textOffsetX = maxTextWidth / 2;
+  const textOffsetY = fontSize / 2;
+
+  // node.x()/y() is where Konva placed it after drag.
+  // Add offset back to get the text center position, then convert to cell %.
+  const newX = Math.max(5, Math.min(95,
+    ((node.x() + textOffsetX - cell.x) / cell.w) * 100,
+  ));
+  const newY = Math.max(5, Math.min(95,
+    ((node.y() + textOffsetY - cell.y) / cell.h) * 100,
+  ));
+
+  emit('update:pageText', cellIndex, txt.id, { x: newX, y: newY });
+
+  // Reset node position to the computed position (reactive update will handle it)
+  node.x(cell.x + (newX / 100) * cell.w);
+  node.y(cell.y + (newY / 100) * cell.h);
+  node.offsetX(textOffsetX);
+  node.offsetY(textOffsetY);
+}
+
+function handleCellMouseEnter(index: number): void {
+  if (props.readonly) return;
+  if (props.mode === 'reorder' && selectedIndex.value !== null) {
+    hoverIndex.value = index;
   }
+}
+
+function handleCellMouseLeave(): void {
   hoverIndex.value = null;
 }
 
-function onWheel(event: WheelEvent): void {
+function onWheel(event: Konva.KonvaEventObject<WheelEvent>): void {
   if (props.readonly) return;
 
-  // Wheel-to-zoom on a cell (for pan+zoom feature)
-  const canvas = canvasEl.value;
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  const evt = event.evt;
+  evt.preventDefault();
 
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const canvasX = (event.clientX - rect.left) * scaleX;
-  const canvasY = (event.clientY - rect.top) * scaleY;
+  const stage = stageRef.value?.getNode();
+  if (!stage) return;
 
-  const hit = hitTest(canvasX, canvasY, cellRects.value, layout.LAYOUT, props.pageTexts, ctx);
-  if (hit.type === 'empty') return;
+  const pointer = stage.getPointerPosition();
+  if (!pointer) return;
 
-  const index = hit.cellIndex;
-  const currentCrop = props.cropTransforms[index] ?? defaultCropTransform();
+  // Find which cell the pointer is over
+  const cellIndex = cells.value.findIndex(
+    c => pointer.x >= c.x && pointer.x <= c.x + c.w && pointer.y >= c.y && pointer.y <= c.y + c.h,
+  );
+  if (cellIndex === -1) return;
 
-  // Zoom in/out with scroll
-  const delta = event.deltaY > 0 ? -0.1 : 0.1;
+  const currentCrop = props.cropTransforms[cellIndex] ?? defaultCropTransform();
+
+  const delta = evt.deltaY > 0 ? -0.1 : 0.1;
   const newScale = Math.max(1, Math.min(5, currentCrop.scale + delta));
 
   if (newScale !== currentCrop.scale) {
-    emit('update:cropTransform', index, {
+    emit('update:cropTransform', cellIndex, {
       ...currentCrop,
       scale: newScale,
     });
-    scheduleRender(); // Immediate visual feedback for smooth zoom
   }
 }
 
@@ -473,16 +762,14 @@ const editingPageRole = computed(() =>
 
 /** Position the popover anchor at the center-bottom of the editing cell. */
 const popoverAnchorStyle = computed(() => {
-  if (editingIndex.value === null || !canvasEl.value) return {};
+  if (editingIndex.value === null || !stageWrapperEl.value) return {};
 
-  const canvas = canvasEl.value;
-  const displayRect = canvas.getBoundingClientRect();
-  const cell = cellRects.value[editingIndex.value];
+  const cell = cells.value[editingIndex.value];
   if (!cell) return {};
 
-  // Convert from canvas coords to display coords
-  const scaleX = displayRect.width / canvas.width;
-  const scaleY = displayRect.height / canvas.height;
+  const wrapperRect = stageWrapperEl.value.getBoundingClientRect();
+  const scaleX = wrapperRect.width / stageSize.width;
+  const scaleY = wrapperRect.height / stageSize.height;
 
   const left = cell.x * scaleX + (cell.w * scaleX) / 2;
   const top = (cell.y + cell.h) * scaleY;
@@ -499,7 +786,6 @@ function closeTextEditor(): void {
   editingIndex.value = null;
   activeTextId.value = null;
   selectedTextId.value = null;
-  scheduleRender();
 }
 
 function onTextUpdate(textId: string, updates: Partial<PageText>): void {
@@ -519,7 +805,6 @@ function onTextRemove(textId: string): void {
 
 function onTextSelect(textId: string): void {
   activeTextId.value = textId;
-  scheduleRender();
 }
 
 // ---------------------------------------------------------------------------
@@ -532,67 +817,72 @@ watch(() => props.mode, () => {
   editingIndex.value = null;
   activeTextId.value = null;
   selectedTextId.value = null;
-  scheduleRender();
 });
 
 // ---------------------------------------------------------------------------
-// Reactive re-render triggers
+// Reactive image/font loading
 // ---------------------------------------------------------------------------
 
-// Re-render when any prop changes
 watch(
-  [
-    () => props.photos,
-    () => props.pageTexts,
-    () => props.gap,
-    () => props.showGuides,
-    () => props.showLabels,
-    () => props.readonly,
-    () => props.cropTransforms,
-  ],
+  [() => props.photos, () => props.pageTexts],
   () => {
-    // If photos changed, force image reload
     const urls = props.photos.map(p => p.url);
     if (
       urls.length !== imageUrlsLoaded.value.length
       || !urls.every((u, i) => u === imageUrlsLoaded.value[i])
     ) {
-      imageUrlsLoaded.value = []; // Force reload
+      imageUrlsLoaded.value = [];
       ensureImagesLoaded();
     }
 
-    // If text overlays exist, ensure fonts are loaded
     if (props.pageTexts.flat().some(pt => pt.content)) {
       ensureFontsLoaded();
     }
-
-    scheduleRender();
   },
   { deep: true },
 );
+
+// ---------------------------------------------------------------------------
+// Stage sizing (responsive via ResizeObserver)
+// ---------------------------------------------------------------------------
+
+let resizeObserver: ResizeObserver | null = null;
+
+function updateStageSize(): void {
+  const wrapper = stageWrapperEl.value;
+  if (!wrapper) return;
+
+  const rect = wrapper.getBoundingClientRect();
+  const w = Math.round(rect.width);
+  const h = Math.round(rect.width * (210 / 297)); // A4 aspect ratio
+
+  if (stageSize.width !== w || stageSize.height !== h) {
+    stageSize.width = w;
+    stageSize.height = h;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
 onMounted(() => {
-  updateCanvasSize();
+  updateStageSize();
 
   resizeObserver = new ResizeObserver(() => {
-    updateCanvasSize();
+    updateStageSize();
   });
-  if (containerEl.value) {
-    resizeObserver.observe(containerEl.value);
+  if (stageWrapperEl.value) {
+    resizeObserver.observe(stageWrapperEl.value);
   }
 
-  scheduleRender();
+  // Initial image load
+  if (props.photos.length > 0) {
+    ensureImagesLoaded();
+  }
 });
 
 onBeforeUnmount(() => {
-  if (rafId !== null) {
-    cancelAnimationFrame(rafId);
-    rafId = null;
-  }
   resizeObserver?.disconnect();
   resizeObserver = null;
 });
