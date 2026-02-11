@@ -150,10 +150,11 @@
                 </div>
 
                 <div class="overflow-hidden paper-shadow">
-                  <FanzineGrid
+                  <FanzineCanvas
                     :photos="photos"
                     :page-texts="pageTexts"
                     :gap="gap"
+                    :crop-transforms="cropTransforms"
                     :mode="gridMode"
                     :show-labels="showLabels"
                     :show-guides="showGuides"
@@ -161,6 +162,7 @@
                     @update:page-text="onUpdatePageText"
                     @add:page-text="onAddPageText"
                     @remove:page-text="removePageText"
+                    @update:crop-transform="updateCropTransform"
                   />
                 </div>
               </div>
@@ -218,7 +220,7 @@
 import type { StepperItem } from "@nuxt/ui";
 
 const { t } = useI18n();
-const { photos, gap, pageTexts, reorder, addPageText, removePageText, updatePageText, count, MAX_PHOTOS } =
+const { photos, gap, pageTexts, cropTransforms, reorder, addPageText, removePageText, updatePageText, updateCropTransform, count, MAX_PHOTOS } =
   usePhotoStore();
 
 // Draft gap value -- slider updates this locally without touching the grid.

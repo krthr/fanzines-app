@@ -13,10 +13,11 @@
             {{ $t('preview.printDescription') }}
           </p>
           <div class="overflow-hidden paper-shadow">
-            <FanzineGrid
+            <FanzineCanvas
               :photos="photos"
               :page-texts="pageTexts"
               :gap="gap"
+              :crop-transforms="cropTransforms"
               readonly
               show-labels
               show-guides
@@ -76,7 +77,7 @@ import type { TabsItem } from '@nuxt/ui';
 
 const { t } = useI18n();
 const { $posthog } = useNuxtApp();
-const { photos, gap, pageTexts } = usePhotoStore();
+const { photos, gap, pageTexts, cropTransforms } = usePhotoStore();
 const { exportToPdf, isExporting } = useExportPdf();
 const toast = useToast();
 
@@ -107,6 +108,7 @@ async function handleExport(): Promise<void> {
     await exportToPdf(photos.value, gap.value, {
       showGuides: pdfGuides.value,
       pageTexts: pageTexts.value,
+      cropTransforms: cropTransforms.value,
     });
     $posthog()?.capture('fanzine_exported', eventProps);
     toast.add({

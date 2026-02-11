@@ -1,4 +1,6 @@
 import { processImages } from '~/composables/useImageProcessor';
+import type { CropTransform } from '~/composables/useCanvasRenderer';
+import { defaultCropTransform } from '~/composables/useCanvasRenderer';
 
 export interface PhotoItem {
   id: string;
@@ -27,10 +29,15 @@ function createDefaultPageTexts(): PageText[][] {
   return Array.from({ length: MAX_PHOTOS }, () => []);
 }
 
+function createDefaultCropTransforms(): CropTransform[] {
+  return Array.from({ length: MAX_PHOTOS }, () => defaultCropTransform());
+}
+
 // Module-scoped state (client-only, never leaves the browser)
 const photos = shallowRef<PhotoItem[]>([]);
 const gap = ref<number>(0);
 const pageTexts = ref<PageText[][]>(createDefaultPageTexts());
+const cropTransforms = ref<CropTransform[]>(createDefaultCropTransforms());
 const isProcessing = ref(false);
 
 export function usePhotoStore() {
@@ -93,6 +100,13 @@ export function usePhotoStore() {
     texts[fromIndex] = texts[toIndex]!;
     texts[toIndex] = tmpText;
     pageTexts.value = texts;
+
+    // Swap corresponding crop transforms
+    const crops = [...cropTransforms.value];
+    const tmpCrop = crops[fromIndex]!;
+    crops[fromIndex] = crops[toIndex]!;
+    crops[toIndex] = tmpCrop;
+    cropTransforms.value = crops;
   }
 
   function clear(): void {
@@ -101,6 +115,7 @@ export function usePhotoStore() {
     }
     photos.value = [];
     pageTexts.value = createDefaultPageTexts();
+    cropTransforms.value = createDefaultCropTransforms();
   }
 
   function addPageText(pageIndex: number): PageText | null {
@@ -144,6 +159,13 @@ export function usePhotoStore() {
     pageTexts.value = texts;
   }
 
+  function updateCropTransform(index: number, transform: CropTransform): void {
+    if (index < 0 || index >= MAX_PHOTOS) return;
+    const crops = [...cropTransforms.value];
+    crops[index] = { ...transform };
+    cropTransforms.value = crops;
+  }
+
   const isFull = computed(() => photos.value.length >= MAX_PHOTOS);
   const count = computed(() => photos.value.length);
 
@@ -151,6 +173,7 @@ export function usePhotoStore() {
     photos,
     gap,
     pageTexts,
+    cropTransforms,
     isProcessing,
     addPhotos,
     removePhoto,
@@ -159,6 +182,7 @@ export function usePhotoStore() {
     addPageText,
     removePageText,
     updatePageText,
+    updateCropTransform,
     isFull,
     count,
     MAX_PHOTOS,
