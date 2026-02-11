@@ -4,6 +4,7 @@
     class="fanzine-canvas-container relative"
   >
     <div ref="stageWrapperEl" :style="{ aspectRatio: '297 / 210', width: '100%' }">
+      <ClientOnly>
       <v-stage
         v-if="stageSize.width > 0"
         ref="stageRef"
@@ -42,6 +43,8 @@
                   @dragend="handleTextDragEnd(i, txt, $event)"
                   @click="handleTextClick(i, txt, $event)"
                   @tap="handleTextClick(i, txt, $event)"
+                  @mouseenter="mode === 'text' && !readonly && setCursor('move')"
+                  @mouseleave="mode === 'text' && !readonly && setCursor('default')"
                 >
                   <!-- Background pill -->
                   <v-rect
@@ -224,6 +227,7 @@
           </template>
         </v-layer>
       </v-stage>
+      </ClientOnly>
     </div>
 
     <!-- DOM overlay: PageTextEditor popover (canvas can't render form inputs) -->
@@ -389,8 +393,8 @@ async function ensureImagesLoaded(): Promise<void> {
       ensureImagesLoaded();
       return;
     }
-  } catch {
-    // Silently ignore
+  } catch (err) {
+    console.error('[FanzineCanvas] Failed to load images:', err);
   } finally {
     isLoadingAssets = false;
   }
@@ -404,8 +408,8 @@ async function ensureFontsLoaded(): Promise<void> {
     const sampleH = cells.value[0]?.h ?? 300;
     const pageTextsSnapshot = props.pageTexts.map(arr => [...arr]);
     await preloadFonts(pageTextsSnapshot, sampleH);
-  } catch {
-    // Font load failed
+  } catch (err) {
+    console.warn('[FanzineCanvas] Font preload failed:', err);
   }
 }
 
@@ -731,15 +735,31 @@ function handleTextDragEnd(cellIndex: number, txt: PageText, event: Konva.KonvaE
   emit('update:pageText', cellIndex, txt.id, { x: newX, y: newY });
 }
 
+// ---------------------------------------------------------------------------
+// Cursor management (Konva doesn't set CSS cursors automatically)
+// ---------------------------------------------------------------------------
+
+function setCursor(cursor: string): void {
+  const stage = stageRef.value?.getNode();
+  const container = stage?.container();
+  if (container) container.style.cursor = cursor;
+}
+
 function handleCellMouseEnter(index: number): void {
   if (props.readonly) return;
-  if (props.mode === 'reorder' && selectedIndex.value !== null) {
-    hoverIndex.value = index;
+  if (props.mode === 'reorder') {
+    setCursor(selectedIndex.value !== null ? 'pointer' : 'grab');
+    if (selectedIndex.value !== null) {
+      hoverIndex.value = index;
+    }
+  } else if (props.mode === 'text') {
+    setCursor('pointer');
   }
 }
 
 function handleCellMouseLeave(): void {
   hoverIndex.value = null;
+  setCursor('default');
 }
 
 function onWheel(event: Konva.KonvaEventObject<WheelEvent>): void {
@@ -914,6 +934,15 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   resizeObserver = null;
+
+  // Release loaded image references so the browser can GC them
+  loadedImages.value = [];
+  imageUrlsLoaded.value = [];
+
+  // Reset cursor in case it was left in a non-default state
+  const stage = stageRef.value?.getNode();
+  const container = stage?.container();
+  if (container) container.style.cursor = 'default';
 });
 </script>
 
