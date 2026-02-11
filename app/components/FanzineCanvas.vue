@@ -37,7 +37,7 @@
               <template v-for="(txt, j) in (pageTexts[i] ?? [])" :key="txt.id">
                 <v-group
                   v-if="txt.content"
-                  :config="getTextGroupConfig(txt, cell)"
+                  :config="getTextGroupConfig(i, txt, cell)"
                   :draggable="mode === 'text' && !readonly"
                   @dragmove="handleTextDragMove(i, txt, $event)"
                   @dragend="handleTextDragEnd(i, txt, $event)"
@@ -313,9 +313,6 @@ const stageWrapperEl = ref<HTMLDivElement | null>(null);
 const stageRef = ref<{ getNode: () => Konva.Stage } | null>(null);
 const photosLayerRef = ref<{ getNode: () => Konva.Layer } | null>(null);
 
-// Expose the stage ref so parent components (like FanzinePreview) can access it for export
-defineExpose({ stageRef });
-
 // Stage sizing
 const stageSize = reactive({ width: 0, height: 0 });
 
@@ -472,13 +469,27 @@ function getImageConfig(index: number, cell: CellRect): Record<string, unknown> 
 // ---------------------------------------------------------------------------
 
 /** Wrapper group for a text overlay -- positioned at text center, draggable as a unit. */
-function getTextGroupConfig(txt: PageText, cell: CellRect): Record<string, unknown> {
-  const textCenterX = cell.x + (txt.x / 100) * cell.w;
-  const textCenterY = cell.y + (txt.y / 100) * cell.h;
+function getTextGroupConfig(index: number, txt: PageText, cell: CellRect): Record<string, unknown> {
+  // Text position is stored as percentage of cell dimensions in stage (absolute) space.
+  // For rotated cells (180°), we must invert the local position so that the parent's
+  // rotation maps it back to the correct absolute position.
+  const rotated = layout.LAYOUT[index]?.rotated ?? false;
+
+  let localX: number;
+  let localY: number;
+
+  if (rotated) {
+    // Invert: local = cell.x + cell.w - (pct * cell.w)
+    localX = cell.x + cell.w - (txt.x / 100) * cell.w;
+    localY = cell.y + cell.h - (txt.y / 100) * cell.h;
+  } else {
+    localX = cell.x + (txt.x / 100) * cell.w;
+    localY = cell.y + (txt.y / 100) * cell.h;
+  }
 
   return {
-    x: textCenterX,
-    y: textCenterY,
+    x: localX,
+    y: localY,
     dragBoundFunc: (pos: { x: number; y: number }) => ({
       x: Math.max(cell.x, Math.min(cell.x + cell.w, pos.x)),
       y: Math.max(cell.y, Math.min(cell.y + cell.h, pos.y)),
@@ -723,13 +734,15 @@ function handleTextDragEnd(cellIndex: number, txt: PageText, event: Konva.KonvaE
   const cell = cells.value[cellIndex];
   if (!cell) return;
 
-  // The group's x/y is the text center position in local (cell group) space.
-  // Convert back to cell-percentage coordinates.
+  // Use absolute (stage) position since dragBoundFunc clamps in stage space.
+  // This correctly handles 180°-rotated parent groups where local coords are flipped.
+  const absPos = node.getAbsolutePosition();
+
   const newX = Math.max(5, Math.min(95,
-    ((node.x() - cell.x) / cell.w) * 100,
+    ((absPos.x - cell.x) / cell.w) * 100,
   ));
   const newY = Math.max(5, Math.min(95,
-    ((node.y() - cell.y) / cell.h) * 100,
+    ((absPos.y - cell.y) / cell.h) * 100,
   ));
 
   emit('update:pageText', cellIndex, txt.id, { x: newX, y: newY });

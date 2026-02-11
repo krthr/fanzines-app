@@ -1,5 +1,10 @@
 <template>
-  <div class="space-y-4">
+  <div
+    ref="rootEl"
+    class="space-y-4"
+    tabindex="0"
+    @keydown="onKeydown"
+  >
     <!-- Spread viewer -->
     <div class="relative">
       <!-- Two-page spread -->
@@ -136,6 +141,7 @@ interface BookletPreviewProps {
 
 const props = defineProps<BookletPreviewProps>();
 
+const rootEl = ref<HTMLDivElement | null>(null);
 const layout = useFanzineLayout();
 
 const spreads = computed(() => layout.getSpreads(props.photos));
@@ -163,7 +169,7 @@ watch(() => props.photos, () => {
   currentIndex.value = 0;
 });
 
-// Keyboard navigation
+// Keyboard navigation (scoped to this component via @keydown on root element)
 function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'ArrowLeft' && currentIndex.value > 0) {
     currentIndex.value--;
@@ -172,14 +178,6 @@ function onKeydown(e: KeyboardEvent): void {
     currentIndex.value++;
   }
 }
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown);
-});
 
 // Text style helpers (booklet uses slightly larger sizes since pages are bigger)
 function bookletTextSize(size: TextSize): string {

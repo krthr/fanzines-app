@@ -130,6 +130,12 @@ export function computeImageCoverConfig(
 ): { cropX: number; cropY: number; cropWidth: number; cropHeight: number; width: number; height: number } {
   const natW = img.naturalWidth;
   const natH = img.naturalHeight;
+
+  // Guard against zero-dimension images (broken/corrupt files)
+  if (natW === 0 || natH === 0) {
+    return { cropX: 0, cropY: 0, cropWidth: 1, cropHeight: 1, width: cellW, height: cellH };
+  }
+
   const imgRatio = natW / natH;
   const cellRatio = cellW / cellH;
 

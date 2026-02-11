@@ -227,6 +227,11 @@ const { photos, gap, pageTexts, cropTransforms, reorder, addPageText, removePage
 // Only committed to the store (and grid) when user clicks "Apply".
 const draftGap = ref(gap.value);
 
+// Sync draftGap when the store gap changes (e.g., after clear())
+watch(gap, (newGap) => {
+  draftGap.value = newGap;
+});
+
 // Arrange step display toggles
 const showLabels = ref(false);
 const showGuides = ref(false);
