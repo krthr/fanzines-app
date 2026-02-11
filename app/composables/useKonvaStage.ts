@@ -69,10 +69,21 @@ export function getKonvaFontFamily(font: TextFont): string {
   }
 }
 
-export function getTextFontStyle(size: TextSize): string {
+/**
+ * Map TextSize + TextFont to a Konva fontStyle value.
+ * Only returns weights that are actually loaded from Google Fonts:
+ *   Special Elite: 400 only
+ *   Libre Baskerville: 400, 700
+ *   Courier Prime: 400, 700
+ *   Caveat: 400, 500, 700
+ */
+export function getTextFontStyle(size: TextSize, font: TextFont = 'sans'): string {
+  // Special Elite only has weight 400 -- always return 'normal'
+  if (font === 'sans') return 'normal';
+
   switch (size) {
     case 'sm': return 'normal';
-    case 'md': return '600';
+    case 'md': return font === 'handwritten' ? '500' : 'normal';
     case 'lg': return 'bold';
     case 'xl': return 'bold';
   }

@@ -514,7 +514,7 @@ function getTextNodeConfig(txt: PageText, cell: CellRect): Record<string, unknow
     text: txt.content,
     fontSize,
     fontFamily: getKonvaFontFamily(txt.font),
-    fontStyle: getTextFontStyle(txt.size),
+    fontStyle: getTextFontStyle(txt.size, txt.font),
     fill: getTextFillColor(txt.color),
     width: maxTextWidth,
     align: 'center',

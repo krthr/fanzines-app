@@ -178,17 +178,8 @@ const currentStep = ref(0);
 
 const { LAYOUT } = useFanzineLayout();
 
-// Reset to step 0 when modal opens
-watch(open, (isOpen) => {
-  if (isOpen) {
-    currentStep.value = 0;
-  }
-});
-
-// Keyboard navigation
+// Keyboard navigation -- only listen when modal is open
 function onKeydown(e: KeyboardEvent): void {
-  if (!open.value) return;
-
   if (e.key === 'ArrowRight' && currentStep.value < TOTAL_STEPS - 1) {
     currentStep.value++;
   }
@@ -197,11 +188,16 @@ function onKeydown(e: KeyboardEvent): void {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown);
+watch(open, (isOpen) => {
+  if (isOpen) {
+    currentStep.value = 0;
+    window.addEventListener('keydown', onKeydown);
+  } else {
+    window.removeEventListener('keydown', onKeydown);
+  }
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
 });
 </script>

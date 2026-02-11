@@ -17,7 +17,7 @@ Instructions for AI coding agents working in this repository.
 ```
 app/                  # Nuxt 4 app directory (all application source code)
   app.vue             # Root component (UApp shell with header, main, footer)
-  app.config.ts       # App config (UI theme colors: primary=rose, neutral=zinc)
+  app.config.ts       # App config (UI theme colors: primary=fuchsia, neutral=zinc)
   assets/css/         # Global stylesheets (Tailwind + Nuxt UI imports)
   pages/              # File-based routing (single page: index.vue)
   components/         # Auto-imported Vue components
@@ -58,7 +58,7 @@ yarn nuxi typecheck   # Full TypeScript type-checking (no tsc script)
 
 ## Nuxt Modules (in `nuxt.config.ts`)
 
-`@nuxt/ui`, `@nuxthub/core`, `@nuxt/fonts`, `@nuxtjs/i18n`, `@nuxtjs/seo`, `@vite-pwa/nuxt`
+`@nuxt/ui`, `@nuxthub/core`, `@nuxt/fonts`, `@nuxtjs/i18n`, `@nuxtjs/seo`
 
 ## Code Style Guidelines
 
@@ -105,7 +105,7 @@ yarn nuxi typecheck   # Full TypeScript type-checking (no tsc script)
 - Icons use Lucide via UIcon: `<UIcon name="i-lucide-arrow-right" class="size-4" />`.
 - Global CSS lives in `app/assets/css/main.css`; keep it minimal.
 - Tailwind CSS 4 uses CSS-native `@import` and `@theme` -- no `tailwind.config.ts`.
-- UI theme colors are set in `app/app.config.ts` (primary: rose, neutral: zinc).
+- UI theme colors are set in `app/app.config.ts` (primary: fuchsia, neutral: zinc).
 
 ### Internationalization (i18n)
 
