@@ -72,15 +72,6 @@ body::before {
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Kill transitions on photo grid cells */
-.fanzine-cell img {
-  transition: none;
-}
-
-.fanzine-cell:hover img {
-  transform: none;
-}
-
 /* Photo thumbnail hover — zine rotation instead of lift */
 .photo-thumb {
   transition: none;

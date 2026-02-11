@@ -1,8 +1,9 @@
-import type { PhotoItem } from '~/composables/usePhotoStore';
-import type { PageText } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText } from '~/composables/usePhotoStore';
 import type { PageSlot } from '~/composables/useFanzineLayout';
 import type { CropTransform } from '~/composables/useKonvaStage';
 import {
+  COLS,
+  ROWS,
   A4_WIDTH_PX,
   A4_HEIGHT_PX,
   calcCellRects,
@@ -19,9 +20,6 @@ import {
 // A4 landscape dimensions in mm (for jsPDF)
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-
-const COLS = 4;
-const ROWS = 2;
 
 /** Guide line styling constants (in mm) */
 const GUIDE_LINE_WIDTH = 0.3;

@@ -271,7 +271,7 @@ import {
   getTextFontStyle,
 } from '~/composables/useKonvaStage';
 
-const MAX_TEXTS_PER_PAGE = 3;
+const { MAX_TEXTS_PER_PAGE } = usePhotoStore();
 
 interface FanzineCanvasProps {
   photos: PhotoItem[];

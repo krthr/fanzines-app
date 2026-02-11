@@ -5,8 +5,8 @@ import type { PhotoItem, PageText, TextSize, TextColor, TextFont } from '~/compo
 // Constants
 // ---------------------------------------------------------------------------
 
-const COLS = 4;
-const ROWS = 2;
+export const COLS = 4;
+export const ROWS = 2;
 
 /** A4 landscape at 300 DPI (used for PDF export). */
 export const A4_WIDTH_PX = 3508;
@@ -75,7 +75,7 @@ export function getKonvaFontFamily(font: TextFont): string {
  *   Special Elite: 400 only
  *   Libre Baskerville: 400, 700
  *   Courier Prime: 400, 700
- *   Caveat: 400, 500, 700
+ *   Caveat: 400, 700
  */
 export function getTextFontStyle(size: TextSize, font: TextFont = 'sans'): string {
   // Special Elite only has weight 400 -- always return 'normal'
@@ -83,7 +83,7 @@ export function getTextFontStyle(size: TextSize, font: TextFont = 'sans'): strin
 
   switch (size) {
     case 'sm': return 'normal';
-    case 'md': return font === 'handwritten' ? '500' : 'normal';
+    case 'md': return 'normal';
     case 'lg': return 'bold';
     case 'xl': return 'bold';
   }

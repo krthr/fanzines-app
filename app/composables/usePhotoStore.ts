@@ -150,6 +150,7 @@ export function usePhotoStore() {
 
   function updatePageText(pageIndex: number, textId: string, updates: Partial<PageText>): void {
     if (pageIndex < 0 || pageIndex >= MAX_PHOTOS) return;
+    if (Object.keys(updates).length === 0) return;
     const texts = [...pageTexts.value];
     const pageArr = [...(texts[pageIndex] || [])];
     const idx = pageArr.findIndex(t => t.id === textId);

@@ -159,8 +159,8 @@
                     :show-labels="showLabels"
                     :show-guides="showGuides"
                     @reorder="reorder"
-                    @update:page-text="onUpdatePageText"
-                    @add:page-text="onAddPageText"
+                    @update:page-text="updatePageText"
+                    @add:page-text="addPageText"
                     @remove:page-text="removePageText"
                     @update:crop-transform="updateCropTransform"
                   />
@@ -241,17 +241,6 @@ const gridMode = ref<"reorder" | "text">("reorder");
 
 function applyGap(): void {
   gap.value = draftGap.value;
-}
-
-function onUpdatePageText(pageIndex: number, textId: string, updates: Partial<import('~/composables/usePhotoStore').PageText>): void {
-  if (Object.keys(updates).length === 0) {
-    return;
-  }
-  updatePageText(pageIndex, textId, updates);
-}
-
-function onAddPageText(pageIndex: number): void {
-  addPageText(pageIndex);
 }
 
 

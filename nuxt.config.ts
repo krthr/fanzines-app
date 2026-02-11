@@ -55,7 +55,7 @@ export default defineNuxtConfig({
       {
         name: 'Caveat',
         provider: 'google',
-        weights: [400, 500, 700],
+        weights: [400, 700],
       },
       {
         name: 'Bebas Neue',

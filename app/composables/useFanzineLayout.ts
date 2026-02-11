@@ -1,5 +1,4 @@
-import type { PhotoItem } from '~/composables/usePhotoStore';
-import type { PageText } from '~/composables/usePhotoStore';
+import type { PhotoItem, PageText } from '~/composables/usePhotoStore';
 
 /**
  * 8-page fanzine fold layout mapping.
@@ -83,7 +82,7 @@ export function useFanzineLayout() {
   }
 
   /**
-   * Check whether a grid position should be rotated 180° on the printed sheet.
+   * Get the i18n label key for a grid position.
    */
   function isRotated(gridIndex: number): boolean {
     return LAYOUT[gridIndex]?.rotated ?? false;
@@ -152,7 +151,6 @@ export function useFanzineLayout() {
     LAYOUT,
     getSlot,
     getPageLabelKey,
-    isRotated,
     getReadingOrder,
     getReadingOrderTexts,
     getSpreads,
