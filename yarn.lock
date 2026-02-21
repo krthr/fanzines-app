@@ -7451,10 +7451,12 @@ __metadata:
     "@nuxtjs/i18n": "npm:^10.2.3"
     "@nuxtjs/seo": "npm:^3.4.0"
     jspdf: "npm:^4.1.0"
+    konva: "npm:^10.2.0"
     nuxt: "npm:^4.3.1"
     posthog-js: "npm:^1.343.2"
     tailwindcss: "npm:^4.1.18"
     vue: "npm:^3.5.27"
+    vue-konva: "npm:^3.3.0"
     vue-router: "npm:^4.6.4"
     wrangler: "npm:^4.63.0"
   languageName: unknown
@@ -8483,6 +8485,13 @@ __metadata:
   version: 1.3.0
   resolution: "knitwork@npm:1.3.0"
   checksum: 10c0/727127cfea8b3b54ad70e71f52561ebae992e6b27e93d412ba807d96348c5e3827acd6235f8105d5e47a9f078592c988cb48549253babebcb23fe980c0219a22
+  languageName: node
+  linkType: hard
+
+"konva@npm:^10.2.0":
+  version: 10.2.0
+  resolution: "konva@npm:10.2.0"
+  checksum: 10c0/afbb59a8a83c41c75f6e3103aa7f2ddb7f4f2132dab612d54e7dcefcd50f9b28b6b02fb88ce1387fe2b33905e67dc73ba2dba2cd1cb01abfc47250798f61c88f
   languageName: node
   linkType: hard
 
@@ -13233,6 +13242,16 @@ __metadata:
   peerDependencies:
     vue: ^3.0.0
   checksum: 10c0/37717cbfea14d09587ca4c38eec3caa89ff4cf4b1af3e37181f770384db6bf38d93bf8626f5d20738a738a65098d38c8bb9ab3c99845942d5911b7a577e9b074
+  languageName: node
+  linkType: hard
+
+"vue-konva@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "vue-konva@npm:3.3.0"
+  peerDependencies:
+    konva: ">7"
+    vue: ^3
+  checksum: 10c0/30d91f91ac8265f718a26403382a20d839b6fa99e1d3db9ac44597fe3df7e92ba42bd039a4daf7dd1b2ce543b2051c39e2079f674001cc24447a2167bd09ff63
   languageName: node
   linkType: hard
 

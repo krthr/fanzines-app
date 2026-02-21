@@ -150,7 +150,7 @@
                 </div>
 
                 <div class="overflow-hidden paper-shadow">
-                  <FanzineGrid
+                  <ZineCanvas
                     :photos="photos"
                     :page-texts="pageTexts"
                     :gap="gap"
@@ -161,7 +161,25 @@
                     @update:page-text="onUpdatePageText"
                     @add:page-text="onAddPageText"
                     @remove:page-text="removePageText"
+                    @select:text="onSelectText"
                   />
+                </div>
+
+                <!-- Text property panel (shown when a text is selected in text mode) -->
+                <div v-if="gridMode === 'text' && selectedTextPageIndex !== null">
+                  <UCard>
+                    <PageTextEditor
+                      :texts="pageTexts[selectedTextPageIndex] ?? []"
+                      :active-text-id="selectedTextId"
+                      :max-texts="MAX_TEXTS_PER_PAGE"
+                      :label-key="getPageLabelKey(selectedTextPageIndex)"
+                      :page-role="getSlot(selectedTextPageIndex)?.role ?? ''"
+                      @update:text="(textId, updates) => onUpdatePageText(selectedTextPageIndex!, textId, updates)"
+                      @add:text="onAddPageText(selectedTextPageIndex!)"
+                      @remove:text="(textId) => removePageText(selectedTextPageIndex!, textId)"
+                      @select:text="(textId) => onSelectText(selectedTextPageIndex!, textId)"
+                    />
+                  </UCard>
                 </div>
               </div>
             </UCard>
@@ -218,8 +236,9 @@
 import type { StepperItem } from "@nuxt/ui";
 
 const { t } = useI18n();
-const { photos, gap, pageTexts, reorder, addPageText, removePageText, updatePageText, count, MAX_PHOTOS } =
+const { photos, gap, pageTexts, reorder, addPageText, removePageText, updatePageText, count, MAX_PHOTOS, MAX_TEXTS_PER_PAGE } =
   usePhotoStore();
+const { getPageLabelKey, getSlot } = useFanzineLayout();
 
 // Draft gap value -- slider updates this locally without touching the grid.
 // Only committed to the store (and grid) when user clicks "Apply".
@@ -231,6 +250,26 @@ const showGuides = ref(false);
 
 // Grid interaction mode: reorder (click-to-swap) or text (click-to-edit)
 const gridMode = ref<"reorder" | "text">("reorder");
+
+// Text selection state for the property panel
+const selectedTextPageIndex = ref<number | null>(null);
+const selectedTextId = ref<string | null>(null);
+
+function onSelectText(pageIndex: number, textId: string | null): void {
+  if (pageIndex < 0) {
+    selectedTextPageIndex.value = null;
+    selectedTextId.value = null;
+    return;
+  }
+  selectedTextPageIndex.value = pageIndex;
+  selectedTextId.value = textId;
+}
+
+// Reset text selection when mode changes
+watch(gridMode, () => {
+  selectedTextPageIndex.value = null;
+  selectedTextId.value = null;
+});
 
 function applyGap(): void {
   gap.value = draftGap.value;
